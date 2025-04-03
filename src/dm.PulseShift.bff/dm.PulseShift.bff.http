@@ -1,0 +1,6 @@
+@dm.PulseShift.bff_HostAddress = http://localhost:5185
+
+GET {{dm.PulseShift.bff_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

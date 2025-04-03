@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0-preview.2.25163.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dm.PulseShift.Application\dm.PulseShift.Application.csproj" />
+    <ProjectReference Include="..\dm.PulseShift.Domain\dm.PulseShift.Domain.csproj" />
+    <ProjectReference Include="..\dm.PulseShift.Infra.Data\dm.PulseShift.Infra.Data.csproj" />
+  </ItemGroup>
+
+</Project>

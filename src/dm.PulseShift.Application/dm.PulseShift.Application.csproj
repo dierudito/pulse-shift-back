@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>Preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dm.PulseShift.Domain\dm.PulseShift.Domain.csproj" />
+    <ProjectReference Include="..\dm.PulseShift.Infra.CrossCutting.Shared\dm.PulseShift.Infra.CrossCutting.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
