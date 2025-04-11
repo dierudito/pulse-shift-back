@@ -15,7 +15,8 @@ public static class Endpoint
 
         endpoints.MapGroup(ApiConfigurations.RouterTimeEntry)
             .WithTags("Time Entry")
-            .MapEndpoint<TimeEntryClockEndpoint>();
+            .MapEndpoint<TimeEntryClockEndpoint>()
+            .MapEndpoint<TimeEntryTodaysDurationEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

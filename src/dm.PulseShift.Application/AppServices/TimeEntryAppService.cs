@@ -69,6 +69,25 @@ public class TimeEntryAppService(ITimeEntryRepository repository, ITimeEntryServ
                 Data = new(0,0,0, "00:00:00")
             };
 
+        var clockIn = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockIn)?.EntryDate ?? currentDate;
+        var breakStart = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakStart)?.EntryDate ?? currentDate;
+        var breakEnd = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakEnd)?.EntryDate ?? currentDate;
+        var clockOut = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockOut)?.EntryDate ?? currentDate;
 
+        var preBreakDuration = (breakStart - clockIn).TotalSeconds;
+        var postBreakDuration = (clockOut - breakEnd).TotalSeconds;
+        var totalDuration = preBreakDuration + postBreakDuration;
+        var totalDurationTimeSpan = TimeSpan.FromSeconds(totalDuration);
+        var totalDurationFormatted = 
+            $"{totalDurationTimeSpan.Hours:D2}:" +
+            $"{totalDurationTimeSpan.Minutes:D2}:" +
+            $"{totalDurationTimeSpan.Seconds:D2}";
+
+        var response = new GetTodaysDurationResponseViewModel(totalDurationTimeSpan.Hours,
+            totalDurationTimeSpan.Minutes,
+            totalDurationTimeSpan.Seconds,
+            totalDurationFormatted);
+
+        return new() { Code = HttpStatusCode.OK, Data = response };
     }
 }

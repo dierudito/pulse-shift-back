@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-dm.PulseShift.NotifierService-9b599eea-cec6-45e5-a3e8-aa0885af394b</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.2.25163.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0-preview.2.25163.2" />
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.26100.1742" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dm.PulseShift.Application\dm.PulseShift.Application.csproj" />
+    <ProjectReference Include="..\dm.PulseShift.Infra.CrossCutting.IoC\dm.PulseShift.Infra.CrossCutting.IoC.csproj" />
+  </ItemGroup>
+</Project>
