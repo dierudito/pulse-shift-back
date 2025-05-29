@@ -7,6 +7,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services) =>
         services
         .AddScoped<ITimeEntryRepository, TimeEntryRepository>()
-        //.AddScoped<ILoginPageRepository, LoginPageRepository>()
+        .AddScoped<IWorkScheduleRepository, WorkScheduleRepository>()
+        .AddScoped<IDayOffRepository, DayOffRepository>()
         ;
 }

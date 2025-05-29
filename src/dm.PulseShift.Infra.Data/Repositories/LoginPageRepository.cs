@@ -1,12 +1,8 @@
 ﻿using dm.PulseShift.Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace dm.PulseShift.Infra.Data.Repositories;
 

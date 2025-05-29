@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/1 - Presentation/">
+    <Project Path="src/dm.PulseShift.Automation/dm.PulseShift.Automation.csproj" />
+    <Project Path="src/dm.PulseShift.bff/dm.PulseShift.bff.csproj" />
+    <Project Path="src/WebApplication1/WebApplication1.csproj" />
+  </Folder>
+  <Folder Name="/2 - Application/">
+    <Project Path="src/dm.PulseShift.Application/dm.PulseShift.Application.csproj" />
+  </Folder>
+  <Folder Name="/3 - Domain/">
+    <Project Path="src/dm.PulseShift.Domain/dm.PulseShift.Domain.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infra/" />
+  <Folder Name="/4 - Infra/4.1 -  Data/">
+    <Project Path="src/dm.PulseShift.Infra.Data/dm.PulseShift.Infra.Data.csproj" />
+  </Folder>
+  <Folder Name="/4 - Infra/4.2 - CrossCutting/">
+    <Project Path="src/dm.PulseShift.Infra.CrossCutting.IoC/dm.PulseShift.Infra.CrossCutting.IoC.csproj" />
+    <Project Path="src/dm.PulseShift.Infra.CrossCutting.Shared/dm.PulseShift.Infra.CrossCutting.Shared.csproj" />
+  </Folder>
+</Solution>

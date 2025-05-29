@@ -12,4 +12,5 @@ public class ApiConfigurations
     public static string BackendUrl { get; set; } = string.Empty;
     public static string FrontendUrl { get; set; } = string.Empty;
     public const string RouterTimeEntry = "time-entry";
+    public const string RouterDayOff = "day-off";
 }

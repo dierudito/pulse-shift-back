@@ -9,7 +9,7 @@ public class WorkerAppService(ITimeEntryRepository repository) : IWorkerAppServi
     public async Task<TimeSpan> GetTodaysDurationAsync()
     {
         var currentDate = DateTimeOffset.UtcNow;
-        var entries = await repository.GetByDateAsync(currentDate.Date);
+        var entries = await repository.GetByDateAsync(DateOnly.FromDateTime(currentDate.Date));
         if (entries is null || !entries.Any())
             return TimeSpan.Zero;
 

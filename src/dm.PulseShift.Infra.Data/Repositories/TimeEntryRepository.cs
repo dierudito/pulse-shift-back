@@ -7,14 +7,14 @@ using Microsoft.EntityFrameworkCore;
 namespace dm.PulseShift.Infra.Data.Repositories;
 public class TimeEntryRepository(PulseShiftDbContext db) : BaseRepository<TimeEntry>(db), ITimeEntryRepository
 {
-    public async Task<IEnumerable<TimeEntry>> GetByDateAsync(DateTimeOffset date) =>
+    public async Task<IEnumerable<TimeEntry>> GetByDateAsync(DateOnly date) =>
         await _dbSet.AsNoTracking()
-            .Where(te => te.EntryDate.Date == date.Date)
+            .Where(te => te.WorkDate == date)
             .ToListAsync();
 
-    public async Task<IEnumerable<TimeEntry>> GetByDateRangeAsync(DateTimeOffset startDate, DateTimeOffset endDate) =>
+    public async Task<IEnumerable<TimeEntry>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate) =>
         await _dbSet.AsNoTracking()
-            .Where(te => te.EntryDate.Date >= startDate.Date && te.EntryDate.Date <= endDate.Date)
+            .Where(te => te.WorkDate >= startDate && te.WorkDate <= endDate)
             .ToListAsync();
 
     public async Task<TimeEntry?> GetLastAsync() =>

@@ -1,4 +1,5 @@
-﻿using dm.PulseShift.bff.Endpoints.TimeEntries;
+﻿using dm.PulseShift.bff.Endpoints.DaysOff;
+using dm.PulseShift.bff.Endpoints.TimeEntries;
 using dm.PulseShift.bff.Extensions;
 using dm.PulseShift.Infra.CrossCutting.Shared;
 
@@ -16,7 +17,15 @@ public static class Endpoint
         endpoints.MapGroup(ApiConfigurations.RouterTimeEntry)
             .WithTags("Time Entry")
             .MapEndpoint<TimeEntryClockEndpoint>()
-            .MapEndpoint<TimeEntryTodaysDurationEndpoint>();
+            .MapEndpoint<TimeEntryClockWithDateEndpoint>()
+            .MapEndpoint<TimeEntryTodaysDurationEndpoint>()
+            .MapEndpoint<TimeEntryDurationEndpoint>()
+            .MapEndpoint<TimeEntryPeriodDurationEndpoint>()
+            .MapEndpoint<TimeEntryScheduleByDateEndpoint>();
+
+        endpoints.MapGroup(ApiConfigurations.RouterDayOff)
+            .WithTags("Day Off")
+            .MapEndpoint<CreateDayOffEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

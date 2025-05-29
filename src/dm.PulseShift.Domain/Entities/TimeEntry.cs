@@ -6,5 +6,6 @@ public class TimeEntry : Entity
 {
     public TimeEntryType EntryType { get; set; } = default!;
     public DateTimeOffset EntryDate { get; set; } = DateTime.UtcNow;
+    public DateOnly WorkDate { get; set; } = default!;
     public string? Description { get; set; }
 }

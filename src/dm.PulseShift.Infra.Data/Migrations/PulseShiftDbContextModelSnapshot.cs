@@ -22,6 +22,36 @@ namespace dm.PulseShift.Infra.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.DayOff", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date")
+                        .IsUnique();
+
+                    b.ToTable("DaysOff", (string)null);
+                });
+
             modelBuilder.Entity("dm.PulseShift.Domain.Entities.TimeEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -48,9 +78,42 @@ namespace dm.PulseShift.Infra.Data.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
+
                     b.HasKey("Id");
 
                     b.ToTable("TimeEntries", (string)null);
+                });
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.WorkSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EntryType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan>("WorkTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntryType")
+                        .IsUnique();
+
+                    b.ToTable("WorkSchedules", (string)null);
                 });
 #pragma warning restore 612, 618
         }

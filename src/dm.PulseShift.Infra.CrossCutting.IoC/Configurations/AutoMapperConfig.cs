@@ -13,6 +13,7 @@ public static class AutoMapperConfig
             mc.AllowNullCollections = true;
 
             mc.AddProfile(new TimeEntryMap());
+            mc.AddProfile(new DayOffMap());
         });
 
         var mapper = mapConfig.CreateMapper();
