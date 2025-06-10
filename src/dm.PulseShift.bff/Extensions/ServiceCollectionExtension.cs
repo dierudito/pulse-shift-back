@@ -1,6 +1,7 @@
 ﻿using dm.PulseShift.Application;
 using dm.PulseShift.Infra.CrossCutting.IoC.Configurations;
 using dm.PulseShift.Infra.CrossCutting.Shared;
+using System.Text.Json.Serialization;
 
 namespace dm.PulseShift.bff.Extensions;
 
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtension
         .AddDatabaseConfiguration()
         .AddCrossOrigin()
         .AddDocumentation()
+        .ConfigureGlobalJsonOptions()
         .ResolveDependencies()
         .AddApplication();
 
@@ -33,6 +35,16 @@ public static class ServiceCollectionExtension
                     ])
                 .AllowAnyMethod()
                 .AllowAnyHeader()
-                .AllowCredentials()
-                ));
+                .AllowAnyOrigin()
+            //.AllowCredentials()
+                )); 
+
+    public static IServiceCollection ConfigureGlobalJsonOptions(this IServiceCollection services) =>
+        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+        {
+            options.SerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+            options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            options.SerializerOptions.WriteIndented = true; // Cuidado com o impacto em produção
+            // options.SerializerOptions.PropertyNameCaseInsensitive = true;
+        });
 }

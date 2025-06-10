@@ -9,6 +9,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ITimeEntryAppService, TimeEntryAppService>();
         services.AddScoped<IDayOffAppService, DayOffAppService>();
+        services.AddScoped<IActivityAppService, ActivityAppService>();
+        services.AddScoped<IWorkSummaryAppService, WorkSummaryAppService>();
         //services.AddScoped<IAuthenticationWebSiteSeniorXAppService, AuthenticationWebSiteSeniorXAppService>();
         return services;
     }

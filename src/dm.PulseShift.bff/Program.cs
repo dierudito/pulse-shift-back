@@ -10,8 +10,12 @@ builder.Services.RegisterServices();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
+{
     app.ConfigureDevEnvironment();
-
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+app.UseRouting();
 app.UseCors(ApiConfigurations.CorsPolicyName);
 app.MapEndpoints();
 

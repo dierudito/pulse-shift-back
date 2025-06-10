@@ -17,10 +17,91 @@ namespace dm.PulseShift.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0-preview.2.25163.8")
+                .HasAnnotation("ProductVersion", "10.0.0-preview.4.25258.110")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.Activity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CardCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CardLink")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Activities_CardCode");
+
+                    b.ToTable("Activities", (string)null);
+                });
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.ActivityPeriod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssociatedEndTimeEntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssociatedStartTimeEntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
+
+                    b.HasIndex("AssociatedEndTimeEntryId");
+
+                    b.HasIndex("AssociatedStartTimeEntryId");
+
+                    b.ToTable("ActivityPeriods", (string)null);
+                });
 
             modelBuilder.Entity("dm.PulseShift.Domain.Entities.DayOff", b =>
                 {
@@ -114,6 +195,44 @@ namespace dm.PulseShift.Infra.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("WorkSchedules", (string)null);
+                });
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.ActivityPeriod", b =>
+                {
+                    b.HasOne("dm.PulseShift.Domain.Entities.Activity", "Activity")
+                        .WithMany("ActivityPeriods")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("dm.PulseShift.Domain.Entities.TimeEntry", "EndTimeEntry")
+                        .WithMany("EndActivityPeriods")
+                        .HasForeignKey("AssociatedEndTimeEntryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("dm.PulseShift.Domain.Entities.TimeEntry", "StartTimeEntry")
+                        .WithMany("StartActivityPeriods")
+                        .HasForeignKey("AssociatedStartTimeEntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("EndTimeEntry");
+
+                    b.Navigation("StartTimeEntry");
+                });
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.Activity", b =>
+                {
+                    b.Navigation("ActivityPeriods");
+                });
+
+            modelBuilder.Entity("dm.PulseShift.Domain.Entities.TimeEntry", b =>
+                {
+                    b.Navigation("EndActivityPeriods");
+
+                    b.Navigation("StartActivityPeriods");
                 });
 #pragma warning restore 612, 618
         }

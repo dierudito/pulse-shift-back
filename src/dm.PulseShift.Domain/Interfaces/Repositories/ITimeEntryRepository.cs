@@ -6,5 +6,6 @@ public interface ITimeEntryRepository : IBaseRepository<TimeEntry>
 {
     Task<IEnumerable<TimeEntry>> GetByDateAsync(DateOnly date);
     Task<IEnumerable<TimeEntry>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate);
+    Task<IEnumerable<TimeEntry>> GetEntriesByDateRangeOrderedAsync(DateTimeOffset startDateTime, DateTimeOffset endDateTime);
     Task<TimeEntry?> GetLastAsync();
 }

@@ -14,11 +14,14 @@ public class TimeEntryRepository(PulseShiftDbContext db) : BaseRepository<TimeEn
 
     public async Task<IEnumerable<TimeEntry>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate) =>
         await _dbSet.AsNoTracking()
-            .Where(te => te.WorkDate >= startDate && te.WorkDate <= endDate)
+            .Where(te => !te.IsDeleted && te.WorkDate >= startDate && te.WorkDate <= endDate)
+            .OrderBy(te => te.WorkDate)
+            .ThenBy(te => te.EntryDate)
             .ToListAsync();
 
     public async Task<TimeEntry?> GetLastAsync() =>
         await _dbSet.AsNoTracking()
+            .Where(te => !te.IsDeleted)
             .OrderByDescending(te => te.EntryDate)
             .FirstOrDefaultAsync();
 
@@ -31,4 +34,11 @@ public class TimeEntryRepository(PulseShiftDbContext db) : BaseRepository<TimeEn
             _dbSet.Update(entity);
         }
     }
+
+    public async Task<IEnumerable<TimeEntry>> GetEntriesByDateRangeOrderedAsync(DateTimeOffset startDateTime, DateTimeOffset endDateTime) =>
+        await _dbSet.AsNoTracking()
+            .Where(te => !te.IsDeleted && te.EntryDate >= startDateTime && te.EntryDate <= endDateTime)
+            .OrderBy(te => te.EntryDate)
+            .ToListAsync();
+
 }

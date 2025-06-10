@@ -10,4 +10,5 @@ public interface ITimeEntryAppService
     Task<Response<GetDurationResponseViewModel>> GetDurationAsync(DateOnly date);
     Task<Response<GetPeriodDurationResponseViewModel>> GetPeriodDurationAsync(DateOnly startDate, DateOnly endDate);
     Task<Response<GetWorkScheduleResponseViewModel>> GetWorkScheduleByDateAsync(DateOnly date);
+    Task<Response<IEnumerable<GetTimeEntriesPerDay>>> GetTimeEntriesPerDayAsync(DateOnly date);
 }

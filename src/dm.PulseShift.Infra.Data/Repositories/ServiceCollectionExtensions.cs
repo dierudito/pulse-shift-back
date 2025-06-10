@@ -9,5 +9,7 @@ public static class ServiceCollectionExtensions
         .AddScoped<ITimeEntryRepository, TimeEntryRepository>()
         .AddScoped<IWorkScheduleRepository, WorkScheduleRepository>()
         .AddScoped<IDayOffRepository, DayOffRepository>()
+        .AddScoped<IActivityRepository, ActivityRepository>()
+        .AddScoped<IActivityPeriodRepository, ActivityPeriodRepository>()
         ;
 }

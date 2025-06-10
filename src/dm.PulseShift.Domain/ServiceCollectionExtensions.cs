@@ -12,5 +12,7 @@ public static class ServiceCollectionExtensions
         => services
             .AddScoped<ITimeEntryService, TimeEntryService>()
             .AddScoped<IDayOffService, DayOffService>()
+            .AddScoped<IActivityService, ActivityService>()
+            .AddScoped<IActivityWorkCalculatorService, ActivityWorkCalculatorService>()
         ;
 }

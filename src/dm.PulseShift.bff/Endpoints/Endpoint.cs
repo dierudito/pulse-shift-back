@@ -1,5 +1,7 @@
-﻿using dm.PulseShift.bff.Endpoints.DaysOff;
+﻿using dm.PulseShift.bff.Endpoints.Activities;
+using dm.PulseShift.bff.Endpoints.DaysOff;
 using dm.PulseShift.bff.Endpoints.TimeEntries;
+using dm.PulseShift.bff.Endpoints.WorkSummary;
 using dm.PulseShift.bff.Extensions;
 using dm.PulseShift.Infra.CrossCutting.Shared;
 
@@ -21,11 +23,29 @@ public static class Endpoint
             .MapEndpoint<TimeEntryTodaysDurationEndpoint>()
             .MapEndpoint<TimeEntryDurationEndpoint>()
             .MapEndpoint<TimeEntryPeriodDurationEndpoint>()
-            .MapEndpoint<TimeEntryScheduleByDateEndpoint>();
+            .MapEndpoint<TimeEntryScheduleByDateEndpoint>()
+            .MapEndpoint<TimeEntriesTodaysEndpoint>()
+            ;
 
         endpoints.MapGroup(ApiConfigurations.RouterDayOff)
             .WithTags("Day Off")
             .MapEndpoint<CreateDayOffEndpoint>();
+
+        endpoints.MapGroup(ApiConfigurations.RouterActivity)
+            .WithTags("Activity")
+            .MapEndpoint<CreateActivityEndpoint>()
+            .MapEndpoint<StartActivityEndpoint>()
+            .MapEndpoint<FinishActivityEndpoint>()
+            .MapEndpoint<GetActivityWorkDetailsByIdEndpoint>()
+            .MapEndpoint<GetActivityWorkDetailsByCardCodeEndpoint>()
+            .MapEndpoint<GetActivitiesSummaryEndpoint>()
+            .MapEndpoint<AddRetroactiveActivityPeriodEndpoint>()
+            .MapEndpoint<GetActivitiesPaginatedEndpoint>()
+            ;
+
+        endpoints.MapGroup(ApiConfigurations.RouterWorkSummary)
+            .WithTags("Work Summary")
+            .MapEndpoint<GetTotalWorkedHoursInRangeEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

@@ -14,6 +14,8 @@ public static class AutoMapperConfig
 
             mc.AddProfile(new TimeEntryMap());
             mc.AddProfile(new DayOffMap());
+            mc.AddProfile(new ActivityMap());
+            mc.AddProfile(new ActivityPeriodMap());
         });
 
         var mapper = mapConfig.CreateMapper();

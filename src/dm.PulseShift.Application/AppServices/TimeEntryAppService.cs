@@ -6,6 +6,7 @@ using dm.PulseShift.Domain.Entities;
 using dm.PulseShift.Domain.Enums;
 using dm.PulseShift.Domain.Interfaces.Repositories;
 using dm.PulseShift.Domain.Interfaces.Services;
+using dm.PulseShift.Infra.CrossCutting.Shared.Helpers;
 using System.Net;
 
 namespace dm.PulseShift.Application.AppServices;
@@ -416,6 +417,30 @@ public class TimeEntryAppService(
         {
             Code = HttpStatusCode.BadRequest,
             Message = "Unable to determine work schedule."
+        };
+    }
+
+    public async Task<Response<IEnumerable<GetTimeEntriesPerDay>>> GetTimeEntriesPerDayAsync(DateOnly date)
+    {
+        var entries = await repository.GetByDateAsync(date);
+        if (entries is null || !entries.Any())
+            return new()
+            {
+                Code = HttpStatusCode.OK,
+                Data = Enumerable.Empty<GetTimeEntriesPerDay>()
+            };
+
+        var entriesViewModel = entries.Select(e => 
+        new GetTimeEntriesPerDay(
+            e.Id, 
+            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.EntryDate), 
+            e.EntryType.ToString(),
+            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.CreatedAt),
+            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.UpdatedAt)));
+        return new()
+        {
+            Code = HttpStatusCode.OK,
+            Data = entriesViewModel
         };
     }
 
