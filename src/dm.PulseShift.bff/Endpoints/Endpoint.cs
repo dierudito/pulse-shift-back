@@ -1,5 +1,6 @@
 ﻿using dm.PulseShift.bff.Endpoints.Activities;
 using dm.PulseShift.bff.Endpoints.DaysOff;
+using dm.PulseShift.bff.Endpoints.Reports;
 using dm.PulseShift.bff.Endpoints.TimeEntries;
 using dm.PulseShift.bff.Endpoints.WorkSummary;
 using dm.PulseShift.bff.Extensions;
@@ -46,6 +47,10 @@ public static class Endpoint
         endpoints.MapGroup(ApiConfigurations.RouterWorkSummary)
             .WithTags("Work Summary")
             .MapEndpoint<GetTotalWorkedHoursInRangeEndpoint>();
+
+        endpoints.MapGroup(ApiConfigurations.RouterReports)
+            .WithTags("Reports")
+            .MapEndpoint<GetPeriodReportEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

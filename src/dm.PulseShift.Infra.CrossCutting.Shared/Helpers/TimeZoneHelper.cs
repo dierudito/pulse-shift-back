@@ -2,6 +2,8 @@
 
 public static class TimeZoneHelper
 {
+    public static TimeZoneInfo SaoPauloTimeZone => GetSaoPauloTimeZone();
+
     public static TimeZoneInfo GetSaoPauloTimeZone()
     {
         try

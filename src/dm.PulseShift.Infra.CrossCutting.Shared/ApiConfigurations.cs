@@ -15,4 +15,5 @@ public class ApiConfigurations
     public const string RouterDayOff = "/days-off";
     public const string RouterActivity = "/activities";
     public const string RouterWorkSummary = "/work-summary";
+    public const string RouterReports = "/reports";
 }
