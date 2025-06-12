@@ -23,7 +23,7 @@ public class GetPeriodReportEndpoint : IEndpoint
         [FromQuery] DateTime startDate,
         [FromQuery] DateTime endDate)
     {
-        var request = new PeriodReportRequestViewModel(startDate.ToUniversalTime(), endDate.ToLocalTime());
+        var request = new PeriodReportRequestViewModel(startDate, endDate.ToLocalTime());
         var response = await reportAppService.GetPeriodReportAsync(request);
         return ResponseResult<PeriodReportResponseViewModel>.CreateResponse(response);
     }

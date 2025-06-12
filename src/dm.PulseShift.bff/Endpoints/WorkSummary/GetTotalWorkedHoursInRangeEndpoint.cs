@@ -20,8 +20,8 @@ public class GetTotalWorkedHoursInRangeEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         IWorkSummaryAppService appService, // Ou IWorkSummaryAppService se você criou um separado
-        [FromQuery] DateTimeOffset startDate,
-        [FromQuery] DateTimeOffset endDate)
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate)
     {
         var request = new WorkHoursQueryRequestViewModel(startDate, endDate);
         var response = await appService.GetTotalWorkedHoursInRangeAsync(request);

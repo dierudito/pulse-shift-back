@@ -8,18 +8,17 @@ public static class FormatHelper
     public const string BrazilianDateTimeFormat = "dd/MM/yyyy HH:mm";
 
     public static string FormatNumberToBrazilianString(decimal number) => number.ToString("F2", PtBrCulture);
-    public static string FormatDateTimeOffsetToBrazilianString(DateTimeOffset dateTimeOffset, string format = BrazilianDateTimeFormat)
+    public static string FormatDateTimeToBrazilianString(DateTime date, string format = BrazilianDateTimeFormat)
     {
-        DateTime saoPauloTime = TimeZoneInfo.ConvertTime(dateTimeOffset, TimeZoneHelper.GetSaoPauloTimeZone()).DateTime;
-        return saoPauloTime.ToString(format, PtBrCulture);
+        return date.ToString(format, PtBrCulture);
     }
 
-    public static string? FormatDateTimeOffsetToBrazilianString(DateTimeOffset? dateTimeOffset, string format = BrazilianDateTimeFormat)
+    public static string? FormatDateTimeToBrazilianString(DateTime? date, string format = BrazilianDateTimeFormat)
     {
-        if (!dateTimeOffset.HasValue)
+        if (!date.HasValue)
         {
             return null;
         }
-        return FormatDateTimeOffsetToBrazilianString(dateTimeOffset.Value, format);
+        return FormatDateTimeToBrazilianString(date.Value, format);
     }
 }

@@ -7,7 +7,7 @@ public static class BuildExtension
     public static void AddConfiguration(this WebApplicationBuilder builder)
     {
         ApiConfigurations.ConnectionString =
-            builder.Configuration.GetConnectionString("PulseShiftDbPostgres") ?? string.Empty;
+            builder.Configuration.GetConnectionString("PulseShiftDbSqlServer") ?? string.Empty;
         ApiConfigurations.BackendUrl =
             builder.Configuration.GetValue<string>("Config:Cors:BackendUrl") ?? string.Empty;
         ApiConfigurations.FrontendUrl =

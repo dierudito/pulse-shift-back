@@ -21,11 +21,9 @@ public class WorkScheduleMap : IEntityTypeConfiguration<WorkSchedule>
             .IsUnique();
 
         builder.Property(ws => ws.CreatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
 
         builder.Property(ws => ws.UpdatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
     }
 }

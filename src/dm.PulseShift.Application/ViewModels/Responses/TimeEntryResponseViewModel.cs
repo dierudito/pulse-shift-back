@@ -5,4 +5,4 @@ public record TimeEntryResponseViewModel(
     string EntryType,
     string? Description);
 
-public record GetTimeEntriesPerDay(Guid Id, string EntryDate, string EntryType, string CreatedAt, string UpdatedAt);
+public record GetTimeEntriesPerDay(Guid Id, string EntryDate, string EntryType, string CreatedAt, string? UpdatedAt);

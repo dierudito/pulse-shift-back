@@ -5,5 +5,5 @@ public record CreateActivityRequestViewModel(
     [Required] string Description,
     [Required] string CardCode,
     string? CardLink,
-    DateTimeOffset? StartDate = null
+    DateTime? StartDate = null
 );

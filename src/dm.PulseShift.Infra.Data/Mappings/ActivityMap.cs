@@ -18,10 +18,8 @@ public class ActivityMap : IEntityTypeConfiguration<Activity>
         builder.Property(a => a.Description)
             .HasMaxLength(500);
         builder.Property(a => a.CreatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
         builder.Property(a => a.UpdatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
         builder.HasIndex(a => a.CardCode)
             .IsUnique()

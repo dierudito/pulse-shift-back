@@ -13,15 +13,12 @@ public class TimeEntryMap : IEntityTypeConfiguration<TimeEntry>
         builder.Property(te => te.Description).HasMaxLength(500);
 
         builder.Property(te => te.EntryDate)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
 
         builder.Property(te => te.CreatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
 
         builder.Property(te => te.UpdatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
 
         builder.Property(te => te.EntryType)

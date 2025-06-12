@@ -5,7 +5,7 @@ namespace dm.PulseShift.Domain.Entities;
 public class TimeEntry : Entity
 {
     public TimeEntryType EntryType { get; set; } = default!;
-    public DateTimeOffset EntryDate { get; set; } = DateTime.UtcNow;
+    public DateTime EntryDate { get; set; } = DateTime.Now;
     public DateOnly WorkDate { get; set; } = default!;
     public string? Description { get; set; }
 

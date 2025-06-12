@@ -22,11 +22,9 @@ public class DayOffMap : IEntityTypeConfiguration<DayOff>
             .HasMaxLength(500);
 
         builder.Property(nwd => nwd.CreatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
 
         builder.Property(nwd => nwd.UpdatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
     }
 }

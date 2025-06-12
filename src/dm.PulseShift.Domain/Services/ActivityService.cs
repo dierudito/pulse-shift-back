@@ -31,7 +31,7 @@ public class ActivityService(
         return (activity, initialPeriod);
     }
 
-    public async Task<ActivityPeriod> StartActivityAsync(Guid activityId, DateTimeOffset startDate)
+    public async Task<ActivityPeriod> StartActivityAsync(Guid activityId, DateTime startDate)
     {
         var activity = await activityRepository.GetByIdWithPeriodsAsync(activityId);
 
@@ -55,7 +55,7 @@ public class ActivityService(
         return newPeriod;
     }
 
-    public async Task<ActivityPeriod> FinishCurrentActivityPeriodAsync(Guid activityId, DateTimeOffset endDate)
+    public async Task<ActivityPeriod> FinishCurrentActivityPeriodAsync(Guid activityId, DateTime endDate)
     {
         var activity = await activityRepository.GetByIdWithPeriodsAsync(activityId);
         if (activity == null || activity.IsDeleted)
@@ -71,11 +71,11 @@ public class ActivityService(
         return finishedPeriod;
     }
 
-    public async Task<ActivityPeriod> AddRetroactivePeriodAsync(string cardCode, DateTimeOffset startDate, DateTimeOffset endDate)
+    public async Task<ActivityPeriod> AddRetroactivePeriodAsync(string cardCode, DateTime startDate, DateTime endDate)
     {
         if (startDate >= endDate)
             throw new ArgumentException("Start date must be before end date.");
-        if (startDate > DateTimeOffset.UtcNow || endDate > DateTimeOffset.UtcNow)
+        if (startDate > DateTime.Now || endDate > DateTime.Now)
             throw new ArgumentException("Retroactive period dates cannot be in the future.");
 
         var activity = await activityRepository.GetByCardCodeWithPeriodsAsync(cardCode);
@@ -101,7 +101,7 @@ public class ActivityService(
 
             foreach (var existingPeriod in overlappingPeriodsOfOtherActivity)
             {
-                var originalExistingPeriodEndDate = existingPeriod.EndDate ?? DateTimeOffset.MaxValue;
+                var originalExistingPeriodEndDate = existingPeriod.EndDate ?? DateTime.MaxValue;
                 Guid? originalExistingPeriodEndAssociatedId = existingPeriod.AssociatedEndTimeEntryId;
 
                 var endIdForTruncatedPart = (
@@ -124,7 +124,7 @@ public class ActivityService(
                         throw new InvalidOperationException($"No TimeEntry found near {endDate} for resuming other activity.");
                     var resumedPeriod = otherActivity.StartNewPeriod(endDate, startIdForResumedPeriod);
 
-                    if (originalExistingPeriodEndDate != DateTimeOffset.MaxValue)
+                    if (originalExistingPeriodEndDate != DateTime.MaxValue)
                     {
                         var endIdForResumedOriginal = originalExistingPeriodEndAssociatedId ?? (await GetAssociatedTimeEntryAsync(originalExistingPeriodEndDate))?.Id ?? throw new InvalidOperationException($"No TimeEntry found near original end date for resuming other activity.");
                         resumedPeriod.FinishPeriod(originalExistingPeriodEndDate, endIdForResumedOriginal);
@@ -139,17 +139,17 @@ public class ActivityService(
         return newRetroPeriod;
     }
 
-    private async Task<TimeEntry?> GetAssociatedTimeEntryAsync(DateTimeOffset dateTime)
+    private async Task<TimeEntry?> GetAssociatedTimeEntryAsync(DateTime dateTime)
     {
         var localDate = dateTime.ToLocalTime();
-        var localDateOnly = DateOnly.FromDateTime(localDate.DateTime);
+        var localDateOnly = DateOnly.FromDateTime(localDate);
 
         var timeEntries = await timeEntryRepository.GetByDateAsync(localDateOnly);
         var associatedTimeEntry = timeEntries.OrderByDescending(te => te.EntryDate).FirstOrDefault(te => te.EntryDate <= dateTime);
         return associatedTimeEntry;
     }
 
-    private async Task FinishCurrentPeriod(DateTimeOffset date, Guid endAssociatedTimeEntryId)
+    private async Task FinishCurrentPeriod(DateTime date, Guid endAssociatedTimeEntryId)
     {
         var activeActivitiesToClose = await activityRepository.GetCurrentlyActiveActivitiesAsync(date);
         foreach (var activityToClose in activeActivitiesToClose)

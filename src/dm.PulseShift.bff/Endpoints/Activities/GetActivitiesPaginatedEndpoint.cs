@@ -19,8 +19,8 @@ public class GetActivitiesPaginatedEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         IActivityAppService appService,
-        [FromQuery] DateTimeOffset filterStartDate,
-        [FromQuery] DateTimeOffset filterEndDate,
+        [FromQuery] DateTime filterStartDate,
+        [FromQuery] DateTime filterEndDate,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {

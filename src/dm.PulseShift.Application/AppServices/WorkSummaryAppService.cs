@@ -22,8 +22,8 @@ public class WorkSummaryAppService(IActivityWorkCalculatorService activityWorkCa
             var responseData = new TotalWorkHoursResponseViewModel(
                 FormatHelper.FormatNumberToBrazilianString((decimal)calculationResult.TotalWorkHoursFromEntries.TotalHours),
                 FormatHelper.FormatNumberToBrazilianString((decimal)calculationResult.TotalWorkCoveredByActivities.TotalHours),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(request.StartDate),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(request.EndDate)
+                FormatHelper.FormatDateTimeToBrazilianString(request.StartDate),
+                FormatHelper.FormatDateTimeToBrazilianString(request.EndDate)
             );
 
             return new() { Code = HttpStatusCode.OK, Data = responseData };

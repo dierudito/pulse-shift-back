@@ -6,15 +6,15 @@ public class ActivityPeriod : Entity
 {
     public Guid ActivityId { get; set; }
     public virtual Activity Activity { get; set; } = null!;
-    public DateTimeOffset StartDate { get; set; }
-    public DateTimeOffset? EndDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
     public Guid AssociatedStartTimeEntryId { get; set; }
     public virtual TimeEntry StartTimeEntry { get; set; } = null!;
     public Guid? AssociatedEndTimeEntryId { get; set; }
     public virtual TimeEntry? EndTimeEntry { get; set; }
 
-    public void FinishPeriod(DateTimeOffset endDate, Guid endAssociatedTimeEntryId)
+    public void FinishPeriod(DateTime endDate, Guid endAssociatedTimeEntryId)
     {
         if (EndDate.HasValue)
             throw new InvalidOperationException("This activity period has already been finished.");
@@ -27,6 +27,6 @@ public class ActivityPeriod : Entity
 
         EndDate = endDate;
         AssociatedEndTimeEntryId = endAssociatedTimeEntryId;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.Now;
     }
 }

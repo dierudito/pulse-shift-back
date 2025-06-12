@@ -35,7 +35,7 @@ public class TimeEntryRepository(PulseShiftDbContext db) : BaseRepository<TimeEn
         }
     }
 
-    public async Task<IEnumerable<TimeEntry>> GetEntriesByDateRangeOrderedAsync(DateTimeOffset startDateTime, DateTimeOffset endDateTime) =>
+    public async Task<IEnumerable<TimeEntry>> GetEntriesByDateRangeOrderedAsync(DateTime startDateTime, DateTime endDateTime) =>
         await _dbSet.AsNoTracking()
             .Where(te => !te.IsDeleted && te.EntryDate >= startDateTime && te.EntryDate <= endDateTime)
             .OrderBy(te => te.EntryDate)

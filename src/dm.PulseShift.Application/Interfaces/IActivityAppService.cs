@@ -16,8 +16,8 @@ public interface IActivityAppService
     Task<Response<IEnumerable<ActivitySummaryResponseViewModel>>> GetActivitySummaryAsync();
     Task<Response<ActivityResponseViewModel>> AddRetroactiveActivityPeriodAsync(CreateRetroactiveActivityPeriodRequestViewModel request);     
     Task<Response<PaginatedResponseViewModel<ActivityPaginatedItemViewModel>>> GetActivitiesPaginatedAsync(
-        DateTimeOffset filterStartDate,
-        DateTimeOffset filterEndDate,
+        DateTime filterStartDate,
+        DateTime filterEndDate,
         int pageNumber,
         int pageSize);
 }

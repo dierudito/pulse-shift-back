@@ -27,7 +27,7 @@ public class WorkScheduleAppService(IWorkScheduleRepository repository, ITimeEnt
     public async Task<long> GetTimeForNextExecAsync()
     {
         var (clockIn, breakStart, breakEnd, clockOut) = await GetWorkingHoursAsync();
-        var currentDate = DateTimeOffset.UtcNow;
+        var currentDate = DateTime.Now;
         var lastEntry = await timeEntryRepository.GetLastAsync();
 
         if (lastEntry is null || lastEntry.EntryDate.Date != currentDate.Date) return GetTimeFromNow(clockIn);
@@ -94,7 +94,7 @@ public class WorkScheduleAppService(IWorkScheduleRepository repository, ITimeEnt
     {
         var workSchedule = await repository.GetAllAsync();
         
-        if (workSchedule == null || workSchedule.Count() == 0) throw new InvalidOperationException("No work schedule found.");
+        if (workSchedule == null || !workSchedule.Any()) throw new InvalidOperationException("No work schedule found.");
 
         var clockInHour = workSchedule.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockIn)!.WorkTime;
         var breakStartHour = workSchedule.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakStart)!.WorkTime;
@@ -110,7 +110,7 @@ public class WorkScheduleAppService(IWorkScheduleRepository repository, ITimeEnt
         return (clockIn, breakStart, breakEnd, clockOut);
     }
 
-    private long GetTimeFromNow(DateTime dateTime)
+    private static long GetTimeFromNow(DateTime dateTime)
     {
         var currentDate = DateTime.Now;
         var timeSpan = dateTime - currentDate;

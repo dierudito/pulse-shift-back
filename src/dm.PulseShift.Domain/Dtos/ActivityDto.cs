@@ -5,8 +5,8 @@ public record ActivityDto(
     string CardCode,
     string Description,
     string? CardLink,
-    DateTimeOffset StartDate,
-    DateTimeOffset? EndDate = null,
+    DateTime StartDate,
+    DateTime? EndDate = null,
     Guid? AssociatedStartTimeEntryId = default,
     Guid? AssociatedEndTimeEntryId = default
 );

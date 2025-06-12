@@ -14,7 +14,11 @@ public static class DatabaseConfig
     services
         .AddDbContext<PulseShiftDbContext>(options =>
         {
-            options.UseNpgsql(ApiConfigurations.ConnectionString);
+            options.UseSqlServer(ApiConfigurations.ConnectionString,
+                sqlServerOptionsAction: sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+                });
 #if (DEBUG)
             options.EnableSensitiveDataLogging();
 #endif

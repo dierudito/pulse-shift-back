@@ -6,5 +6,5 @@ namespace dm.PulseShift.Domain.Interfaces.Services;
 public interface IActivityWorkCalculatorService
 {
     Task<TimeSpan> CalculateEffectiveWorkTimeAsync(Activity targetActivity);
-    Task<WorkTimeCalculationDto> CalculateTotalEffectiveActivityTimeInRangeAsync(DateTimeOffset rangeStart, DateTimeOffset rangeEnd);
+    Task<WorkTimeCalculationDto> CalculateTotalEffectiveActivityTimeInRangeAsync(DateTime rangeStart, DateTime rangeEnd);
 }

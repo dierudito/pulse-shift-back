@@ -4,6 +4,6 @@ namespace dm.PulseShift.Application.ViewModels.Requests;
 
 public record CreateRetroactiveActivityPeriodRequestViewModel(
     [Required] string CardCode,
-    [Required] DateTimeOffset StartDate,
-    [Required] DateTimeOffset EndDate
+    [Required] DateTime StartDate,
+    [Required] DateTime EndDate
 );

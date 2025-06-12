@@ -18,7 +18,7 @@ public class TimeEntryAppService(
 {
     public async Task<Response<TimeEntryResponseViewModel>> CreateAsync()
     {
-        var currentDate = DateTimeOffset.UtcNow;
+        var currentDate = DateTime.Now;
         var lastEntry = await repository.GetLastAsync();
         var entryType = TimeEntryType.ClockIn;
 
@@ -44,7 +44,7 @@ public class TimeEntryAppService(
         {
             EntryDate = currentDate,
             EntryType = entryType,
-            WorkDate = DateOnly.FromDateTime(currentDate.DateTime.ToLocalTime())
+            WorkDate = DateOnly.FromDateTime(currentDate)
         };
 
         var result = await service.AddAsync(entity);
@@ -66,7 +66,6 @@ public class TimeEntryAppService(
 
     public async Task<Response<TimeEntryResponseViewModel>> CreateAsync(DateTime date)
     {
-        var currentDate = date.ToUniversalTime();
         var dateEntry = await repository.GetByDateAsync(DateOnly.FromDateTime(date));
         var entryType = TimeEntryType.ClockIn;
         var lastEntry = dateEntry.OrderByDescending(x => x.EntryDate).FirstOrDefault();
@@ -91,9 +90,9 @@ public class TimeEntryAppService(
 
         var entity = new TimeEntry
         {
-            EntryDate = currentDate,
+            EntryDate = date,
             EntryType = entryType,
-            WorkDate = DateOnly.FromDateTime(currentDate.ToLocalTime())
+            WorkDate = DateOnly.FromDateTime(date)
         };
 
         var result = await service.AddAsync(entity);
@@ -150,17 +149,17 @@ public class TimeEntryAppService(
 
         TimeSpan completedWorkTimeAt = TimeSpan.Zero;
         if (clockOut is not null && breakEnd is not null)
-            completedWorkTimeAt = clockOut.Value.LocalDateTime.AddSeconds(completedWorkTime).TimeOfDay;
+            completedWorkTimeAt = clockOut.Value.AddSeconds(completedWorkTime).TimeOfDay;
         else if (clockOut is null && breakEnd is not null)
-            completedWorkTimeAt = breakEnd.Value.LocalDateTime.AddSeconds(completedWorkTime).TimeOfDay;
+            completedWorkTimeAt = breakEnd.Value.AddSeconds(completedWorkTime).TimeOfDay;
         else if (clockIn is not null && breakStart is null)
-            completedWorkTimeAt = clockIn.Value.LocalDateTime.AddSeconds(completedWorkTime).TimeOfDay;
+            completedWorkTimeAt = clockIn.Value.AddSeconds(completedWorkTime).TimeOfDay;
         var completedWorkTimeAtFormatted = completedWorkTimeAt.ToString(@"hh\:mm\:ss");
 
-        var clockInFormatted = clockIn?.LocalDateTime.ToString("HH:mm:ss") ?? "00:00:00";
-        var clockOutFormatted = clockOut?.LocalDateTime.ToString("HH:mm:ss") ?? "00:00:00";
-        var breakStartFormatted = breakStart?.LocalDateTime.ToString("HH:mm:ss") ?? "00:00:00";
-        var breakEndFormatted = breakEnd?.LocalDateTime.ToString("HH:mm:ss") ?? "00:00:00";
+        var clockInFormatted = clockIn?.ToString("HH:mm:ss") ?? "00:00:00";
+        var clockOutFormatted = clockOut?.ToString("HH:mm:ss") ?? "00:00:00";
+        var breakStartFormatted = breakStart?.ToString("HH:mm:ss") ?? "00:00:00";
+        var breakEndFormatted = breakEnd?.ToString("HH:mm:ss") ?? "00:00:00";
 
         var response = new GetDurationResponseViewModel(clockInFormatted,
             breakStartFormatted, breakEndFormatted, clockOutFormatted,
@@ -271,10 +270,10 @@ public class TimeEntryAppService(
                             ClockOut: "18:00")
             };
 
-        var clockIn = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockIn)?.EntryDate.LocalDateTime;
-        var breakStart = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakStart)?.EntryDate.LocalDateTime;
-        var breakEnd = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakEnd)?.EntryDate.LocalDateTime;
-        var clockOut = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockOut)?.EntryDate.LocalDateTime;
+        var clockIn = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockIn)?.EntryDate;
+        var breakStart = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakStart)?.EntryDate;
+        var breakEnd = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.BreakEnd)?.EntryDate;
+        var clockOut = entries.FirstOrDefault(x => x.EntryType == TimeEntryType.ClockOut)?.EntryDate;
 
         if (clockIn != null && breakStart != null && breakEnd != null && clockOut != null)
             return new()
@@ -433,10 +432,10 @@ public class TimeEntryAppService(
         var entriesViewModel = entries.Select(e => 
         new GetTimeEntriesPerDay(
             e.Id, 
-            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.EntryDate), 
+            FormatHelper.FormatDateTimeToBrazilianString(e.EntryDate), 
             e.EntryType.ToString(),
-            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.CreatedAt),
-            FormatHelper.FormatDateTimeOffsetToBrazilianString(e.UpdatedAt)));
+            FormatHelper.FormatDateTimeToBrazilianString(e.CreatedAt),
+            FormatHelper.FormatDateTimeToBrazilianString(e.UpdatedAt)));
         return new()
         {
             Code = HttpStatusCode.OK,

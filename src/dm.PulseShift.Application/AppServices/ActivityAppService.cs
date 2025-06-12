@@ -25,9 +25,7 @@ public class ActivityAppService(
     {
         try
         {
-            var startDate = request.StartDate ?? DateTimeOffset.UtcNow;
-
-            if (startDate.Offset != TimeSpan.Zero) startDate = startDate.ToUniversalTime();
+            var startDate = request.StartDate ?? DateTime.Now;
             var activityDto = new ActivityDto(null, request.CardCode, request.Description, request.CardLink, startDate);
 
             var (createdActivity, initialPeriod) = await activityService.CreateActivityAsync(activityDto);
@@ -40,7 +38,7 @@ public class ActivityAppService(
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 ReferenceHandler = ReferenceHandler.Preserve
             });
-            var responseData = MapActivityToResponse(fullActivity);
+            var responseData = MapActivityToResponse(fullActivity!);
             return new()
             {
                 Code = HttpStatusCode.Created,
@@ -106,8 +104,7 @@ public class ActivityAppService(
     {
         try
         {
-            var endDate = request.EndDate ?? DateTimeOffset.UtcNow;
-            if (endDate.Offset != TimeSpan.Zero) endDate = endDate.ToUniversalTime();
+            var endDate = request.EndDate ?? DateTime.Now;
             var finishedPeriod = await activityService.FinishCurrentActivityPeriodAsync(activityId, endDate);
             await activityRepository.SaveChangesAsync();
 
@@ -192,8 +189,7 @@ public class ActivityAppService(
     {
         try
         {
-            var startDate = request.StartDate ?? DateTimeOffset.UtcNow;
-            if (startDate.Offset != TimeSpan.Zero) startDate = startDate.ToUniversalTime();
+            var startDate = request.StartDate ?? DateTime.Now;
 
             var newPeriod = await activityService.StartActivityAsync(activityId, startDate);
             await activityRepository.SaveChangesAsync();
@@ -253,10 +249,10 @@ public class ActivityAppService(
                 activity.CardCode,
                 activity.CardLink,
                 FormatHelper.FormatNumberToBrazilianString(totalWorkedHours),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(activity.FirstOverallStartDate),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(activity.LastOverallEndDate),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(activity.CreatedAt),
-                FormatHelper.FormatDateTimeOffsetToBrazilianString(activity.UpdatedAt),
+                FormatHelper.FormatDateTimeToBrazilianString(activity.FirstOverallStartDate),
+                FormatHelper.FormatDateTimeToBrazilianString(activity.LastOverallEndDate),
+                FormatHelper.FormatDateTimeToBrazilianString(activity.CreatedAt),
+                FormatHelper.FormatDateTimeToBrazilianString(activity.UpdatedAt),
                 activity.IsCurrentlyActive,
                 periodResponses
             );
@@ -330,8 +326,6 @@ public class ActivityAppService(
         {
             var startDate = request.StartDate;
             var endDate = request.EndDate;
-            if (startDate.Offset != TimeSpan.Zero) startDate = startDate.ToUniversalTime();
-            if (endDate.Offset != TimeSpan.Zero) endDate = endDate.ToUniversalTime();
 
             var addedPeriod = await activityService.AddRetroactivePeriodAsync(request.CardCode, startDate, endDate);
 
@@ -372,7 +366,7 @@ public class ActivityAppService(
     }
 
     public async Task<Response<PaginatedResponseViewModel<ActivityPaginatedItemViewModel>>> 
-        GetActivitiesPaginatedAsync(DateTimeOffset filterStartDate, DateTimeOffset filterEndDate, int pageNumber, int pageSize)
+        GetActivitiesPaginatedAsync(DateTime filterStartDate, DateTime filterEndDate, int pageNumber, int pageSize)
     {
         try
         {
@@ -387,9 +381,6 @@ public class ActivityAppService(
             if (pageNumber < 1) pageNumber = 1;
             if (pageSize < 1) pageSize = 10;
 
-            filterStartDate = filterStartDate.ToUniversalTime();
-            filterEndDate = filterEndDate.ToUniversalTime();
-
             var (activitiesData, totalRecords) = await activityRepository.GetActivitiesByDateRangePaginatedAsync(
                 filterStartDate, filterEndDate, pageNumber, pageSize);
 
@@ -402,7 +393,7 @@ public class ActivityAppService(
                 var formattedTotalWorkedHours = FormatHelper.FormatNumberToBrazilianString(totalWorkedHoursDecimal);
 
                 string? formattedLastEndDate = activity.LastOverallEndDate.HasValue
-                    ? FormatHelper.FormatDateTimeOffsetToBrazilianString(activity.LastOverallEndDate)
+                    ? FormatHelper.FormatDateTimeToBrazilianString(activity.LastOverallEndDate)
                     : null;
 
                 activityItems.Add(new ActivityPaginatedItemViewModel(

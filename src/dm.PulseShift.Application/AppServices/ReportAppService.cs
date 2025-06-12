@@ -31,13 +31,11 @@ public class ReportAppService(
                 return new Response<PeriodReportResponseViewModel> { Code = HttpStatusCode.BadRequest, Message = "Start date must be before end date." };
             }
 
-            var queryStartUtc = request.StartDate.ToUniversalTime();
-            var queryEndUtc = request.EndDate.ToUniversalTime();
-            DateTimeOffset effectiveRangeEndQuery = Min(queryEndUtc, DateTimeOffset.UtcNow.ToUniversalTime().AddMinutes(1));
+            var effectiveRangeEndQuery = Min(request.EndDate, DateTime.Now.AddMinutes(1));
 
 
             // 1. Obter totais gerais
-            var overallTotals = await workCalculatorService.CalculateTotalEffectiveActivityTimeInRangeAsync(queryStartUtc, queryEndUtc);
+            var overallTotals = await workCalculatorService.CalculateTotalEffectiveActivityTimeInRangeAsync(request.StartDate, request.EndDate);
 
             string formattedTotalWorkHoursFromEntries = ((decimal)overallTotals.TotalWorkHoursFromEntries.TotalHours).ToString("F2", PtBrCulture);
             string formattedTotalWorkCoveredByActivities = ((decimal)overallTotals.TotalWorkCoveredByActivities.TotalHours).ToString("F2", PtBrCulture);
@@ -48,92 +46,81 @@ public class ReportAppService(
                 efficiency = efficiencyValue.ToString("F2", PtBrCulture);
             }
 
-            var allTimeEntriesInRange = (await timeEntryRepository.GetEntriesByDateRangeOrderedAsync(queryStartUtc, effectiveRangeEndQuery)).ToList();
-            var allActivitiesInRange = await activityRepository.GetActivitiesIntersectingDateRangeAsync(queryStartUtc, effectiveRangeEndQuery);
+            var allTimeEntriesInRange = (await timeEntryRepository.GetEntriesByDateRangeOrderedAsync(request.StartDate, effectiveRangeEndQuery)).ToList();
+            var allActivitiesInRange = await activityRepository.GetActivitiesIntersectingDateRangeAsync(request.StartDate, effectiveRangeEndQuery);
             var allActivityPeriodsInRange = allActivitiesInRange
                 .SelectMany(a => a.ActivityPeriods.Where(p => !p.IsDeleted))
                 .ToList();
 
             var timeEntriesByWorkDate = allTimeEntriesInRange
-                .GroupBy(te => DateOnly.FromDateTime(te.EntryDate.UtcDateTime.Date)) // Agrupar por data UTC
+                .GroupBy(te => DateOnly.FromDateTime(te.EntryDate))
                 .ToDictionary(g => g.Key, g => g.OrderBy(te => te.EntryDate).ToList());
 
             var dailyReportViewModels = new List<DailyTimeEntryReportViewModel>();
 
             // 3. Iterar dia a dia no intervalo da consulta
-            for (DateTimeOffset currentDayIterator = queryStartUtc.Date; currentDayIterator.Date <= queryEndUtc.Date; currentDayIterator = currentDayIterator.AddDays(1))
+            for (DateTime currentDayIterator = request.StartDate.Date; currentDayIterator.Date <= request.EndDate.Date; currentDayIterator = currentDayIterator.AddDays(1))
             {
-                DateOnly currentWorkDate = DateOnly.FromDateTime(currentDayIterator.UtcDateTime.Date);
-                DateTime currentSaoPauloDate = TimeZoneInfo.ConvertTimeFromUtc(currentDayIterator.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone);
+                DateOnly currentWorkDate = DateOnly.FromDateTime(currentDayIterator.Date);
 
                 if (!timeEntriesByWorkDate.TryGetValue(currentWorkDate, out var dailyTimeEntriesForThisDay))
                 {
-                    // Adicionar dia sem registros de ponto, se desejado, ou pular
-                    // dailyReportViewModels.Add(new DailyTimeEntryReportViewModel(currentSaoPauloDate.ToString(DateFormat, PtBrCulture), "0,00", []));
                     continue;
                 }
 
-                List<(DateTimeOffset Start, DateTimeOffset End)> workSegmentsForThisDayUtc = GetWorkSegmentsForDay(dailyTimeEntriesForThisDay);
+                List<(DateTime Start, DateTime End)> workSegmentsForThisDay = GetWorkSegmentsForDay(dailyTimeEntriesForThisDay);
                 TimeSpan dailyHoursWorkedFromEntries = TimeSpan.Zero;
                 var workPeriodReportViewModels = new List<WorkSegmentReportViewModel>();
 
-                foreach (var segmentUtc in workSegmentsForThisDayUtc)
+                foreach (var segment in workSegmentsForThisDay)
                 {
                     // Clipa o segmento de trabalho do dia pelo intervalo geral da query
-                    DateTimeOffset clippedSegmentStartUtc = Max(segmentUtc.Start, queryStartUtc);
-                    DateTimeOffset clippedSegmentEndUtc = Min(segmentUtc.End, queryEndUtc);
+                    DateTime clippedSegmentStart = Max(segment.Start, request.StartDate);
+                    DateTime clippedSegmentEnd = Min(segment.End, request.EndDate);
 
-                    if (clippedSegmentStartUtc >= clippedSegmentEndUtc) continue;
+                    if (clippedSegmentStart >= clippedSegmentEnd) continue;
 
-                    dailyHoursWorkedFromEntries += (clippedSegmentEndUtc - clippedSegmentStartUtc);
+                    dailyHoursWorkedFromEntries += (clippedSegmentEnd - clippedSegmentStart);
 
                     var activityEventsInSegment = new List<ActivityEventViewModel>();
                     foreach (var activityPeriod in allActivityPeriodsInRange)
                     {
                         Activity parentActivity = allActivitiesInRange.First(a => a.Id == activityPeriod.ActivityId); // Encontra a atividade pai
 
-                        DateTimeOffset periodStartUtc = activityPeriod.StartDate.ToUniversalTime();
-                        DateTimeOffset periodEndUtc = (activityPeriod.EndDate ?? effectiveRangeEndQuery).ToUniversalTime(); // Usa effectiveRangeEndQuery para períodos ativos
+                        var periodEnd = activityPeriod.EndDate ?? effectiveRangeEndQuery;
 
                         // Interseção do período da atividade com este segmento de trabalho (já clipado)
-                        DateTimeOffset activityOverlapStartUtc = Max(clippedSegmentStartUtc, periodStartUtc);
-                        DateTimeOffset activityOverlapEndUtc = Min(clippedSegmentEndUtc, periodEndUtc);
+                        DateTime activityOverlapStart = Max(clippedSegmentStart, activityPeriod.StartDate);
+                        DateTime activityOverlapEnd = Min(clippedSegmentEnd, periodEnd);
 
-                        if (activityOverlapStartUtc < activityOverlapEndUtc) // Se houver sobreposição
+                        if (activityOverlapStart < activityOverlapEnd) // Se houver sobreposição
                         {
-                            // Converter para hora de São Paulo para a string "WorkingPeriod"
-                            DateTime activityOverlapStartSp = TimeZoneInfo.ConvertTimeFromUtc(activityOverlapStartUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone);
-                            DateTime activityOverlapEndSp = TimeZoneInfo.ConvertTimeFromUtc(activityOverlapEndUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone);
-
-                            string workingPeriodStr = FormatActivityWorkingPeriod(activityPeriod, clippedSegmentStartUtc, clippedSegmentEndUtc, activityOverlapStartSp, activityOverlapEndSp);
+                            string workingPeriodStr = FormatActivityWorkingPeriod(
+                                activityPeriod, clippedSegmentStart, clippedSegmentEnd,
+                                activityOverlapStart, activityOverlapEnd);
 
                             activityEventsInSegment.Add(new ActivityEventViewModel(
                                 parentActivity.Id,
                                 parentActivity.CardCode,
-                                $"{parentActivity.CardCode} - {parentActivity.Description}".TrimEnd(new[] { ' ', '-' }), // DisplayName
+                                $"{parentActivity.CardCode} - {parentActivity.Description}".TrimEnd([' ', '-']), // DisplayName
                                 workingPeriodStr
                             ));
                         }
                     }
 
-                    DateTime segmentStartSp = TimeZoneInfo.ConvertTimeFromUtc(clippedSegmentStartUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone);
-                    DateTime segmentEndSp = TimeZoneInfo.ConvertTimeFromUtc(clippedSegmentEndUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone);
-
-                    // Lógica para EndTime "" se o ClockOut original estiver faltando para este segmento
-                    string endTimeStr = (segmentUtc.End == dailyTimeEntriesForThisDay.LastOrDefault(te => te.EntryType == TimeEntryType.ClockOut)?.EntryDate)
-                                        ? segmentEndSp.ToString(TimeFormat, PtBrCulture)
-                                        : (IsSegmentEffectivelyOpen(segmentUtc, dailyTimeEntriesForThisDay) ? "" : segmentEndSp.ToString(TimeFormat, PtBrCulture));
-
+                    string endTimeStr = (segment.End == dailyTimeEntriesForThisDay.LastOrDefault(te => te.EntryType == TimeEntryType.ClockOut)?.EntryDate)
+                                        ? clippedSegmentEnd.ToString(TimeFormat, PtBrCulture)
+                                        : (IsSegmentEffectivelyOpen(segment, dailyTimeEntriesForThisDay) ? "" : clippedSegmentEnd.ToString(TimeFormat, PtBrCulture));
 
                     workPeriodReportViewModels.Add(new WorkSegmentReportViewModel(
-                        segmentStartSp.ToString(TimeFormat, PtBrCulture),
-                        endTimeStr,
-                        activityEventsInSegment.OrderBy(a => a.WorkingPeriod).ToList() // Ordenar atividades por seu tempo de ocorrência
-                    ));
+                                            clippedSegmentStart.ToString(TimeFormat, PtBrCulture),
+                                            endTimeStr,
+                                            [.. activityEventsInSegment.OrderBy(a => a.WorkingPeriod)]
+                                        ));
                 }
 
                 dailyReportViewModels.Add(new DailyTimeEntryReportViewModel(
-                    currentSaoPauloDate.ToString(DateFormat, PtBrCulture),
+                    currentDayIterator.ToString(DateFormat, PtBrCulture),
                     ((decimal)dailyHoursWorkedFromEntries.TotalHours).ToString("F2", PtBrCulture),
                     workPeriodReportViewModels
                 ));
@@ -143,9 +130,9 @@ public class ReportAppService(
                 formattedTotalWorkHoursFromEntries,
                 formattedTotalWorkCoveredByActivities,
                 efficiency + "%", // Adiciona o símbolo de porcentagem
-                TimeZoneInfo.ConvertTimeFromUtc(queryStartUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone).ToString(DateFormat, PtBrCulture),
-                TimeZoneInfo.ConvertTimeFromUtc(queryEndUtc.UtcDateTime, TimeZoneHelper.SaoPauloTimeZone).ToString(DateFormat, PtBrCulture),
-                dailyReportViewModels.OrderBy(d => DateTime.ParseExact(d.WorkingDay, DateFormat, PtBrCulture)).ToList() // Ordenar dias
+                request.StartDate.ToString(DateFormat, PtBrCulture),
+                request.EndDate.ToString(DateFormat, PtBrCulture),
+                [.. dailyReportViewModels.OrderBy(d => DateTime.ParseExact(d.WorkingDay, DateFormat, PtBrCulture))] // Ordenar dias
             );
 
             return new Response<PeriodReportResponseViewModel> { Code = HttpStatusCode.OK, Data = responseData };
@@ -158,41 +145,42 @@ public class ReportAppService(
     }
 
     // Reutilizar de ActivityWorkCalculatorService ou definir aqui
-    private List<(DateTimeOffset Start, DateTimeOffset End)> GetWorkSegmentsForDay(List<TimeEntry> dailyTimeEntries)
+    private List<(DateTime Start, DateTime End)> GetWorkSegmentsForDay(List<TimeEntry> dailyTimeEntries)
     {
-        // ... (Implementação de GetWorkSegmentsForDay como fornecida anteriormente, garantindo que ela retorne segmentos UTC) ...
-        // Certifique-se que as EntryDate dos TimeEntry já estão em UTC ou são convertidas antes de usar.
-        var segments = new List<(DateTimeOffset Start, DateTimeOffset End)>();
-        if (dailyTimeEntries == null || !dailyTimeEntries.Any()) return segments;
+        var segments = new List<(DateTime Start, DateTime End)>();
+        if (dailyTimeEntries == null || dailyTimeEntries.Count == 0) return segments;
 
         var clockIn = dailyTimeEntries.FirstOrDefault(te => !te.IsDeleted && te.EntryType == TimeEntryType.ClockIn);
         var clockOut = dailyTimeEntries.Where(te => !te.IsDeleted && te.EntryType == TimeEntryType.ClockOut).OrderByDescending(te => te.EntryDate).FirstOrDefault();
 
         if (clockIn == null) return segments;
 
-        DateTimeOffset currentSegmentStart = clockIn.EntryDate.ToUniversalTime(); // Garante UTC
-        DateTimeOffset dayEndBoundaryForCalc = (clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1)).ToUniversalTime(); // Garante UTC
-        if (clockOut != null && clockOut.EntryDate.UtcDateTime.Date != clockIn.EntryDate.UtcDateTime.Date)
+        var currentSegmentStart = clockIn.EntryDate;
+        var dayEndBoundaryForCalc = clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1);
+
+        if (clockOut != null && clockOut.EntryDate.Date != clockIn.EntryDate.Date)
         {
-            dayEndBoundaryForCalc = clockIn.EntryDate.UtcDateTime.Date.AddDays(1).AddTicks(-1);
+            dayEndBoundaryForCalc = clockIn.EntryDate.Date.AddDays(1).AddTicks(-1);
         }
 
         var relevantBreaks = dailyTimeEntries
-            .Where(te => !te.IsDeleted && (te.EntryType == TimeEntryType.BreakStart || te.EntryType == TimeEntryType.BreakEnd) && te.EntryDate >= clockIn.EntryDate && (clockOut == null || te.EntryDate <= clockOut.EntryDate))
+            .Where(te => !te.IsDeleted &&
+                         (te.EntryType == TimeEntryType.BreakStart || te.EntryType == TimeEntryType.BreakEnd) &&
+                          te.EntryDate >= clockIn.EntryDate &&
+                         (clockOut == null || te.EntryDate <= clockOut.EntryDate))
             .OrderBy(te => te.EntryDate)
             .ToList();
 
         foreach (var breakEntry in relevantBreaks)
         {
-            var breakEntryDateUtc = breakEntry.EntryDate.ToUniversalTime();
-            if (breakEntry.EntryType == TimeEntryType.BreakStart && breakEntryDateUtc > currentSegmentStart)
+            if (breakEntry.EntryType == TimeEntryType.BreakStart && breakEntry.EntryDate > currentSegmentStart)
             {
-                segments.Add((currentSegmentStart, Min(breakEntryDateUtc, dayEndBoundaryForCalc)));
+                segments.Add((currentSegmentStart, Min(breakEntry.EntryDate, dayEndBoundaryForCalc)));
                 currentSegmentStart = dayEndBoundaryForCalc;
             }
-            else if (breakEntry.EntryType == TimeEntryType.BreakEnd && breakEntryDateUtc > currentSegmentStart)
+            else if (breakEntry.EntryType == TimeEntryType.BreakEnd && breakEntry.EntryDate > currentSegmentStart)
             {
-                currentSegmentStart = breakEntryDateUtc;
+                currentSegmentStart = breakEntry.EntryDate;
             }
         }
 
@@ -201,16 +189,15 @@ public class ReportAppService(
             segments.Add((currentSegmentStart, dayEndBoundaryForCalc));
         }
 
-        DateTimeOffset absoluteDayStart = clockIn.EntryDate.ToUniversalTime();
-        DateTimeOffset absoluteDayEnd = (clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1)).ToUniversalTime();
+        var absoluteDayStart = clockIn.EntryDate;
+        var absoluteDayEnd = (clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1));
 
-        return segments
+        return [.. segments
             .Select(s => (Start: Max(s.Start, absoluteDayStart), End: Min(s.End, absoluteDayEnd)))
-            .Where(s => s.End > s.Start)
-            .ToList();
+            .Where(s => s.End > s.Start)];
     }
 
-    private bool IsSegmentEffectivelyOpen(ValueTuple<DateTimeOffset, DateTimeOffset> segmentUtc, List<TimeEntry> dailyTimeEntriesForThisDay)
+    private static bool IsSegmentEffectivelyOpen(ValueTuple<DateTime, DateTime> segment, List<TimeEntry> dailyTimeEntriesForThisDay)
     {
         // Verifica se o EndTime do segmento corresponde a um ClockOut real
         var clockOut = dailyTimeEntriesForThisDay
@@ -218,19 +205,19 @@ public class ReportAppService(
             .OrderByDescending(te => te.EntryDate)
             .FirstOrDefault();
 
-        if (segmentUtc.Item1.UtcDateTime.Date == segmentUtc.Item2.UtcDateTime.Date && // mesmo dia
-            clockOut != null && segmentUtc.Item2 == clockOut.EntryDate.ToUniversalTime())
+        if (segment.Item1.Date == segment.Item2.Date && // mesmo dia
+            clockOut != null && segment.Item2 == clockOut.EntryDate)
         {
             return false; // Segmento fechado por um ClockOut
         }
-        if (segmentUtc.Item2.TimeOfDay == TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(-1))) // Termina no fim do dia
+        if (segment.Item2.TimeOfDay == TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(-1))) // Termina no fim do dia
         {
-            return clockOut == null || clockOut.EntryDate.ToUniversalTime() < segmentUtc.Item2; // Aberto se não houver clockout ou se o clockout for antes do fim do dia
+            return clockOut == null || clockOut.EntryDate < segment.Item2; // Aberto se não houver clockout ou se o clockout for antes do fim do dia
         }
         // Poderia ter lógica mais complexa aqui, mas se o segmento termina e não é o ClockOut, algo está faltando.
         // Se o último evento do dia para este segmento não é um clockout que o fecha.
         var lastEventForSegment = dailyTimeEntriesForThisDay
-                                .Where(te => te.EntryDate.ToUniversalTime() <= segmentUtc.Item2)
+                                .Where(te => te.EntryDate <= segment.Item2)
                                 .OrderByDescending(te => te.EntryDate)
                                 .FirstOrDefault();
         return lastEventForSegment != null && lastEventForSegment.EntryType != TimeEntryType.ClockOut;
@@ -238,53 +225,40 @@ public class ReportAppService(
     }
 
 
-    private string FormatActivityWorkingPeriod(ActivityPeriod activityPeriod, DateTimeOffset workSegmentStartUtc, DateTimeOffset workSegmentEndUtc, DateTime activityOverlapStartSp, DateTime activityOverlapEndSp)
+    private string FormatActivityWorkingPeriod(ActivityPeriod activityPeriod, DateTime workSegmentStart, DateTime workSegmentEnd, DateTime activityOverlapStart, DateTime activityOverlapEnd)
     {
-        // Converte limites do activityPeriod para UTC para comparação precisa de eventos
-        DateTimeOffset activityStartUtc = activityPeriod.StartDate.ToUniversalTime();
-        DateTimeOffset? activityEndUtcNullable = activityPeriod.EndDate?.ToUniversalTime();
-
-        // O 'activityOverlapStartSp' e 'activityOverlapEndSp' já são a interseção em SP
-        bool startedInOrAtSegmentBoundary = activityStartUtc >= workSegmentStartUtc && activityStartUtc < workSegmentEndUtc;
-        bool endedInOrAtSegmentBoundary = activityEndUtcNullable.HasValue && activityEndUtcNullable.Value > workSegmentStartUtc && activityEndUtcNullable.Value <= workSegmentEndUtc;
+        // O 'activityOverlapStart' e 'activityOverlapEnd' já são a interseção em SP
+        var startedInOrAtSegmentBoundary =
+            activityPeriod.StartDate >= workSegmentStart &&
+            activityPeriod.StartDate < workSegmentEnd;
+        var endedInOrAtSegmentBoundary =
+            activityPeriod.EndDate.HasValue &&
+            activityPeriod.EndDate.Value > workSegmentStart &&
+            activityPeriod.EndDate.Value <= workSegmentEnd;
 
         if (startedInOrAtSegmentBoundary && endedInOrAtSegmentBoundary)
         {
             // Se iniciou e terminou dentro do overlap SP (que é o overlap com o workSegment)
-            return $"{activityOverlapStartSp.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEndSp.ToString(TimeFormat, PtBrCulture)}";
+            return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
         }
         if (startedInOrAtSegmentBoundary) // Começou dentro do segmento de trabalho (ou no seu início) e termina depois (ou está ativa)
         {
-            return activityOverlapStartSp.ToString(TimeFormat, PtBrCulture);
+            return activityOverlapStart.ToString(TimeFormat, PtBrCulture);
         }
         if (endedInOrAtSegmentBoundary) // Terminou dentro do segmento de trabalho (ou no seu fim) e começou antes
         {
-            return activityOverlapEndSp.ToString(TimeFormat, PtBrCulture);
+            return activityOverlapEnd.ToString(TimeFormat, PtBrCulture);
         }
         // Se cruzou todo o overlap (começou antes do overlap E terminou depois do overlap OU está ativa)
-        if (activityStartUtc < activityOverlapStartSp.ToUniversalTime(TimeZoneHelper.SaoPauloTimeZone) &&
-            (!activityEndUtcNullable.HasValue || activityEndUtcNullable.Value > activityOverlapEndSp.ToUniversalTime(TimeZoneHelper.SaoPauloTimeZone)))
+        if (activityPeriod.StartDate < activityOverlapStart &&
+            (!activityPeriod.EndDate.HasValue || activityPeriod.EndDate.Value > activityOverlapEnd))
         {
-            return $"{activityOverlapStartSp.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEndSp.ToString(TimeFormat, PtBrCulture)}";
+            return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
         }
         // Caso de fallback ou se a lógica acima não cobrir perfeitamente, pode retornar o intervalo de overlap
-        return $"{activityOverlapStartSp.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEndSp.ToString(TimeFormat, PtBrCulture)}";
+        return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
     }
 
-
-    private DateTimeOffset Max(DateTimeOffset d1, DateTimeOffset d2) => d1 > d2 ? d1 : d2;
-    private DateTimeOffset Min(DateTimeOffset d1, DateTimeOffset d2) => d1 < d2 ? d1 : d2;
-}
-
-// Extensão para converter DateTime para DateTimeOffset UTC (exemplo)
-public static class DateTimeExtensions
-{
-    public static DateTimeOffset ToUniversalTime(this DateTime dateTime, TimeZoneInfo sourceTimeZone)
-    {
-        if (dateTime.Kind == DateTimeKind.Unspecified)
-        {
-            return TimeZoneInfo.ConvertTimeToUtc(dateTime, sourceTimeZone);
-        }
-        return dateTime.ToUniversalTime(); // Usa a conversão padrão se Kind for Local ou Utc
-    }
+    private static DateTime Max(DateTime d1, DateTime d2) => d1 > d2 ? d1 : d2;
+    private static DateTime Min(DateTime d1, DateTime d2) => d1 < d2 ? d1 : d2;
 }

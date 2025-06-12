@@ -20,7 +20,7 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
         var overallMinDate = nonDeletedPeriods.Min(p => p.StartDate);
         // Define an effective end date for the query range
         var effectiveQueryEndDate = targetActivity.IsCurrentlyActive
-            ? DateTimeOffset.UtcNow
+            ? DateTime.Now
             : nonDeletedPeriods.Where(p => p.EndDate.HasValue).Select(p => p.EndDate.Value).DefaultIfEmpty(overallMinDate).Max();
         if (effectiveQueryEndDate < overallMinDate && !targetActivity.IsCurrentlyActive) effectiveQueryEndDate = overallMinDate;
 
@@ -34,10 +34,10 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
 
         foreach (var targetPeriod in nonDeletedPeriods.OrderBy(p => p.StartDate))
         {
-            DateTimeOffset periodActualStart = targetPeriod.StartDate;
-            DateTimeOffset periodActualEnd = targetPeriod.EndDate ?? DateTimeOffset.UtcNow; // Se ativa, até agora
+            var periodActualStart = targetPeriod.StartDate;
+            var periodActualEnd = targetPeriod.EndDate ?? DateTime.Now; // Se ativa, até agora
 
-            for (DateTimeOffset currentDateIterator = periodActualStart.Date; currentDateIterator.Date <= periodActualEnd.Date; currentDateIterator = currentDateIterator.AddDays(1))
+            for (var currentDateIterator = periodActualStart.Date; currentDateIterator.Date <= periodActualEnd.Date; currentDateIterator = currentDateIterator.AddDays(1))
             {
                 DateOnly workDate = DateOnly.FromDateTime(currentDateIterator.Date);
                 if (!timeEntriesByWorkDate.TryGetValue(workDate, out var dailyTimeEntries))
@@ -45,12 +45,12 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
                     continue;
                 }
 
-                List<(DateTimeOffset Start, DateTimeOffset End)> workSegments = GetWorkSegmentsForDay(dailyTimeEntries);
+                List<(DateTime Start, DateTime End)> workSegments = GetWorkSegmentsForDay(dailyTimeEntries);
 
                 foreach (var segment in workSegments)
                 {
-                    DateTimeOffset effectiveStart = Max(periodActualStart, segment.Start);
-                    DateTimeOffset effectiveEnd = Min(periodActualEnd, segment.End);
+                    var effectiveStart = Max(periodActualStart, segment.Start);
+                    var effectiveEnd = Min(periodActualEnd, segment.End);
 
                     if (effectiveStart < effectiveEnd)
                     {
@@ -64,12 +64,10 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
         return totalEffectiveWorkTime;
     }
 
-    public async Task<WorkTimeCalculationDto> CalculateTotalEffectiveActivityTimeInRangeAsync(DateTimeOffset rangeStart, DateTimeOffset rangeEnd)
+    public async Task<WorkTimeCalculationDto> CalculateTotalEffectiveActivityTimeInRangeAsync(DateTime rangeStart, DateTime rangeEnd)
     {
 
-        DateTimeOffset effectiveRangeEndQuery = Min(rangeEnd, DateTimeOffset.UtcNow.AddMinutes(1));
-        effectiveRangeEndQuery = effectiveRangeEndQuery.ToUniversalTime();
-        rangeStart = rangeStart.ToUniversalTime();
+        var effectiveRangeEndQuery = Min(rangeEnd, DateTime.Now.AddMinutes(1));
 
         var allTimeEntries = (await timeEntryRepository.GetEntriesByDateRangeOrderedAsync(rangeStart, effectiveRangeEndQuery)).ToList();
 
@@ -79,28 +77,28 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
             .ToList();
 
         var timeEntriesByWorkDate = allTimeEntries
-            .GroupBy(te => DateOnly.FromDateTime(te.EntryDate.UtcDateTime.Date)) // Usar UtcDateTime para consistência na data de agrupamento
+            .GroupBy(te => DateOnly.FromDateTime(te.EntryDate))
             .ToDictionary(g => g.Key, g => g.OrderBy(te => te.EntryDate).ToList());
 
-        TimeSpan totalWorkHoursFromEntries = TimeSpan.Zero;
-        TimeSpan totalWorkCoveredByActivities = TimeSpan.Zero;
+        var totalWorkHoursFromEntries = TimeSpan.Zero;
+        var totalWorkCoveredByActivities = TimeSpan.Zero;
 
         // Loop pelos dias no intervalo da consulta
-        for (DateTimeOffset currentDateIterator = rangeStart.Date; currentDateIterator.Date <= rangeEnd.Date; currentDateIterator = currentDateIterator.AddDays(1))
+        for (var currentDateIterator = rangeStart.Date; currentDateIterator.Date <= rangeEnd.Date; currentDateIterator = currentDateIterator.AddDays(1))
         {
-            DateOnly workDate = DateOnly.FromDateTime(currentDateIterator.UtcDateTime.Date);
+            var workDate = DateOnly.FromDateTime(currentDateIterator);
             if (!timeEntriesByWorkDate.TryGetValue(workDate, out var dailyTimeEntries))
             {
                 continue; // Sem registros de ponto para este dia
             }
 
-            List<(DateTimeOffset Start, DateTimeOffset End)> workSegmentsOnDay = GetWorkSegmentsForDay(dailyTimeEntries);
+            List<(DateTime Start, DateTime End)> workSegmentsOnDay = GetWorkSegmentsForDay(dailyTimeEntries);
 
-            foreach (var workSegment in workSegmentsOnDay)
+            foreach (var (Start, End) in workSegmentsOnDay)
             {
                 // Considera o segmento de trabalho dentro do intervalo da consulta
-                DateTimeOffset clippedWorkSegmentStart = Max(workSegment.Start, rangeStart);
-                DateTimeOffset clippedWorkSegmentEnd = Min(workSegment.End, rangeEnd);
+                var clippedWorkSegmentStart = Max(Start, rangeStart);
+                var clippedWorkSegmentEnd = Min(End, rangeEnd);
 
                 if (clippedWorkSegmentStart >= clippedWorkSegmentEnd) continue;
 
@@ -108,17 +106,17 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
                 totalWorkHoursFromEntries += (clippedWorkSegmentEnd - clippedWorkSegmentStart);
 
                 // Calcula o tempo coberto por atividades DENTRO deste segmento de trabalho específico
-                if (allActivityPeriods.Any()) // Só processa atividades se houver alguma
+                if (allActivityPeriods.Count != 0) // Só processa atividades se houver alguma
                 {
-                    var activeSubSegmentsInThisWorkSegment = new List<(DateTimeOffset Start, DateTimeOffset End)>();
+                    var activeSubSegmentsInThisWorkSegment = new List<(DateTime Start, DateTime End)>();
                     foreach (var activityPeriod in allActivityPeriods)
                     {
-                        DateTimeOffset periodStart = activityPeriod.StartDate.ToUniversalTime(); // Garante UTC
-                        DateTimeOffset periodEnd = (activityPeriod.EndDate ?? Min(DateTimeOffset.UtcNow, rangeEnd)).ToUniversalTime(); // Garante UTC
+                        var periodStart = activityPeriod.StartDate;
+                        var periodEnd = activityPeriod.EndDate ?? Min(DateTime.Now, rangeEnd);
 
                         // Interseção do período da atividade com o segmento de trabalho já clipado pela query
-                        DateTimeOffset overlapStart = Max(clippedWorkSegmentStart, periodStart);
-                        DateTimeOffset overlapEnd = Min(clippedWorkSegmentEnd, periodEnd);
+                        var overlapStart = Max(clippedWorkSegmentStart, periodStart);
+                        var overlapEnd = Min(clippedWorkSegmentEnd, periodEnd);
 
                         if (overlapStart < overlapEnd)
                         {
@@ -137,10 +135,10 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
         return new(totalWorkHoursFromEntries, totalWorkCoveredByActivities);
     }
 
-    private List<(DateTimeOffset Start, DateTimeOffset End)> GetWorkSegmentsForDay(List<TimeEntry> dailyTimeEntries)
+    private List<(DateTime Start, DateTime End)> GetWorkSegmentsForDay(List<TimeEntry> dailyTimeEntries)
     {
-        var segments = new List<(DateTimeOffset Start, DateTimeOffset End)>();
-        if (dailyTimeEntries == null || !dailyTimeEntries.Any()) return segments;
+        var segments = new List<(DateTime Start, DateTime End)>();
+        if (dailyTimeEntries == null || dailyTimeEntries.Count == 0) return segments;
 
         var clockIn = dailyTimeEntries.FirstOrDefault(te => !te.IsDeleted && te.EntryType == TimeEntryType.ClockIn);
         // Consider the last ClockOut of the day, relevant if there are multiple clock-in/out cycles (though less common for typical 4-point days)
@@ -149,10 +147,10 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
 
         if (clockIn == null) return segments;
 
-        DateTimeOffset currentSegmentStart = clockIn.EntryDate;
+        var currentSegmentStart = clockIn.EntryDate;
         // Default dayEndBoundary to end of the clockIn day if no clockOut, or actual clockOut time.
         // If clockOut is on a different day (unlikely for typical setup but possible), cap at end of clockIn's day for this iteration.
-        DateTimeOffset dayEndBoundaryForCalc = clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1);
+        var dayEndBoundaryForCalc = clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1);
         if (clockOut != null && clockOut.EntryDate.Date != clockIn.EntryDate.Date)
         {
             dayEndBoundaryForCalc = clockIn.EntryDate.Date.AddDays(1).AddTicks(-1); // Cap at end of current day being processed
@@ -184,8 +182,8 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
         }
 
         // Final filtering and ensuring segments are within the true overall ClockIn and ClockOut of the day
-        DateTimeOffset absoluteDayStart = clockIn.EntryDate;
-        DateTimeOffset absoluteDayEnd = clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1); // If no clockout, consider end of day
+        var absoluteDayStart = clockIn.EntryDate;
+        var absoluteDayEnd = clockOut?.EntryDate ?? clockIn.EntryDate.Date.AddDays(1).AddTicks(-1); // If no clockout, consider end of day
 
         return segments
             .Select(s => (Start: Max(s.Start, absoluteDayStart), End: Min(s.End, absoluteDayEnd)))
@@ -194,12 +192,12 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
     }
 
 
-    private List<(DateTimeOffset Start, DateTimeOffset End)> MergeOverlappingIntervals(List<(DateTimeOffset Start, DateTimeOffset End)> intervals)
+    private List<(DateTime Start, DateTime End)> MergeOverlappingIntervals(List<(DateTime Start, DateTime End)> intervals)
     {
-        if (intervals == null || !intervals.Any()) return new List<(DateTimeOffset Start, DateTimeOffset End)>();
+        if (intervals == null || !intervals.Any()) return new List<(DateTime Start, DateTime End)>();
 
         var sortedIntervals = intervals.OrderBy(i => i.Start).ToList();
-        var merged = new LinkedList<(DateTimeOffset Start, DateTimeOffset End)>(); // Use LinkedList for efficient Last access/modification
+        var merged = new LinkedList<(DateTime Start, DateTime End)>(); // Use LinkedList for efficient Last access/modification
 
         foreach (var current in sortedIntervals)
         {
@@ -220,6 +218,6 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
         return merged.ToList();
     }
 
-    private DateTimeOffset Max(DateTimeOffset d1, DateTimeOffset d2) => d1 > d2 ? d1 : d2;
-    private DateTimeOffset Min(DateTimeOffset d1, DateTimeOffset d2) => d1 < d2 ? d1 : d2;
+    private DateTime Max(DateTime d1, DateTime d2) => d1 > d2 ? d1 : d2;
+    private DateTime Min(DateTime d1, DateTime d2) => d1 < d2 ? d1 : d2;
 }

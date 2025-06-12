@@ -11,16 +11,12 @@ public class ActivityPeriodMap : IEntityTypeConfiguration<ActivityPeriod>
         builder.ToTable("ActivityPeriods");
         builder.HasKey(ap => ap.Id);
         builder.Property(ap => ap.StartDate)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
         builder.Property(ap => ap.EndDate)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
         builder.Property(ap => ap.CreatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired();
         builder.Property(ap => ap.UpdatedAt)
-            .HasColumnType("timestamp with time zone")
             .IsRequired(false);
 
         builder.HasOne(ap => ap.Activity)

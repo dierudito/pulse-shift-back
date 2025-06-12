@@ -7,10 +7,10 @@ public class TimeEntryMap : Profile
 {
     public TimeEntryMap()
     {
-        CreateMap<DateTimeOffset, DateTime>().ConvertUsing(source => source.DateTime.ToLocalTime());
+        CreateMap<DateTime, DateTime>().ConvertUsing(source => source);
         CreateMap<TimeEntry, TimeEntryResponseViewModel>()
             .ForMember(viewModel => viewModel.EntryType, opt => opt.MapFrom(entity => entity.EntryType.ToString()))
-            .ForMember(viewModel => viewModel.EntryDate, opt => opt.MapFrom(entity => entity.EntryDate.LocalDateTime))
+            .ForMember(viewModel => viewModel.EntryDate, opt => opt.MapFrom(entity => entity.EntryDate))
             .ForMember(viewModel => viewModel.Description, opt => opt.MapFrom(entity => entity.Description))
             .ReverseMap();
     }

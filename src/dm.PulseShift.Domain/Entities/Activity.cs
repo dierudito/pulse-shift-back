@@ -7,16 +7,16 @@ public class Activity : Entity
     public string? Description { get; set; }
     public string CardCode { get; set; } = default!;
     public string? CardLink { get; set; }
-    public DateTimeOffset? FirstOverallStartDate =>
+    public DateTime? FirstOverallStartDate =>
     _activityPeriods.Where(p => !p.IsDeleted).Any()
         ? _activityPeriods.Where(p => !p.IsDeleted).Min(p => p.StartDate)
         : null;
-    public DateTimeOffset? LastOverallEndDate =>
+    public DateTime? LastOverallEndDate =>
         _activityPeriods.Where(p => !p.IsDeleted && p.EndDate.HasValue).Any()
             ? _activityPeriods.Where(p => !p.IsDeleted && p.EndDate.HasValue).Max(p => p.EndDate)
             : null;
 
-    private readonly List<ActivityPeriod> _activityPeriods = new();
+    private readonly List<ActivityPeriod> _activityPeriods = [];
     public IReadOnlyCollection<ActivityPeriod> ActivityPeriods => _activityPeriods.AsReadOnly();
 
     public ActivityPeriod? GetCurrentOpenPeriod() =>
@@ -25,7 +25,7 @@ public class Activity : Entity
     public bool IsFinished() => _activityPeriods.Count != 0 && _activityPeriods.All(p => p.EndDate.HasValue);
     public bool IsCurrentlyActive => GetCurrentOpenPeriod() != null;
 
-    public ActivityPeriod StartInitialPeriod(DateTimeOffset startDate, Guid startAssociatedTimeEntryId)
+    public ActivityPeriod StartInitialPeriod(DateTime startDate, Guid startAssociatedTimeEntryId)
     {
         if (_activityPeriods.Count != 0)
             throw new InvalidOperationException("Initial period can only be started once.");
@@ -33,7 +33,7 @@ public class Activity : Entity
         return AddActivityPeriod(startDate, startAssociatedTimeEntryId);
     }
 
-    public ActivityPeriod StartNewPeriod(DateTimeOffset startDate, Guid startAssociatedTimeEntryId)
+    public ActivityPeriod StartNewPeriod(DateTime startDate, Guid startAssociatedTimeEntryId)
     {
         var currentOpenPeriod = GetCurrentOpenPeriod();
         if (currentOpenPeriod != null)
@@ -45,7 +45,7 @@ public class Activity : Entity
         return AddActivityPeriod(startDate, startAssociatedTimeEntryId);
     }
 
-    public ActivityPeriod AddActivityPeriod(DateTimeOffset startDate, Guid startAssociatedTimeEntryId)
+    public ActivityPeriod AddActivityPeriod(DateTime startDate, Guid startAssociatedTimeEntryId)
     {
 
         var newPeriod = new ActivityPeriod
@@ -55,23 +55,23 @@ public class Activity : Entity
             AssociatedStartTimeEntryId = startAssociatedTimeEntryId
         };
         _activityPeriods.Add(newPeriod);
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.Now;
         return newPeriod;
     }
 
-    public ActivityPeriod FinishCurrentPeriod(DateTimeOffset endDate, Guid endAssociatedTimeEntryId)
+    public ActivityPeriod FinishCurrentPeriod(DateTime endDate, Guid endAssociatedTimeEntryId)
     {
         var currentOpenPeriod = GetCurrentOpenPeriod();
         if (currentOpenPeriod == null)
             throw new InvalidOperationException("No open activity period to finish.");
 
         currentOpenPeriod.FinishPeriod(endDate, endAssociatedTimeEntryId);
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.Now;
         return currentOpenPeriod;
     }
 
-    public ActivityPeriod AddHistoricalPeriod(DateTimeOffset startDate, Guid startAssociatedTimeEntryId, 
-        DateTimeOffset endDate, Guid endAssociatedTimeEntryId)
+    public ActivityPeriod AddHistoricalPeriod(DateTime startDate, Guid startAssociatedTimeEntryId, 
+        DateTime endDate, Guid endAssociatedTimeEntryId)
     {
         if (startDate >= endDate)
         {
@@ -96,7 +96,7 @@ public class Activity : Entity
             AssociatedEndTimeEntryId = endAssociatedTimeEntryId
         };
         _activityPeriods.Add(newPeriod);
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.Now;
         return newPeriod;
     }
 }

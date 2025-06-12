@@ -12,7 +12,7 @@ public class ActivityRepository(PulseShiftDbContext db) : BaseRepository<Activit
         await _dbSet.AsNoTracking().AnyAsync(a => a.CardCode == cardCode);
 
     public async Task<(IEnumerable<Activity> Activities, int TotalRecords)> 
-        GetActivitiesByDateRangePaginatedAsync(DateTimeOffset filterStartDate, DateTimeOffset filterEndDate, int pageNumber, int pageSize)
+        GetActivitiesByDateRangePaginatedAsync(DateTime filterStartDate, DateTime filterEndDate, int pageNumber, int pageSize)
     {
 
         var query = _dbSet.AsNoTracking()
@@ -39,8 +39,8 @@ public class ActivityRepository(PulseShiftDbContext db) : BaseRepository<Activit
     }
 
     public async Task<IEnumerable<Activity>> GetActivitiesIntersectingDateRangeAsync(
-        DateTimeOffset rangeStart,
-        DateTimeOffset rangeEnd,
+        DateTime rangeStart,
+        DateTime rangeEnd,
         Guid? excludeActivityId = null)
     {
         var query = _dbSet.AsNoTracking()
@@ -69,7 +69,7 @@ public class ActivityRepository(PulseShiftDbContext db) : BaseRepository<Activit
     public async Task<Activity?> GetByIdWithPeriodsAsync(Guid id) =>
         await _dbSet.Include(a => a.ActivityPeriods).AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
 
-    public async Task<IEnumerable<Activity>> GetCurrentlyActiveActivitiesAsync(DateTimeOffset start, Guid? excludeActivityId = null)
+    public async Task<IEnumerable<Activity>> GetCurrentlyActiveActivitiesAsync(DateTime start, Guid? excludeActivityId = null)
     {
         var query = _dbSet.AsTracking()
             .Include(a => a.ActivityPeriods.Where(p => !p.IsDeleted))

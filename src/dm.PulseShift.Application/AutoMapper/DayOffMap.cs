@@ -8,7 +8,7 @@ public class DayOffMap : Profile
 {
     public DayOffMap()
     {
-        CreateMap<DateTimeOffset, DateTime>().ConvertUsing(source => source.DateTime);
+        CreateMap<DateTime, DateTime>().ConvertUsing(source => source);
         CreateMap<CreateDayOffRequestViewModel, DayOff>();
     }
 }
