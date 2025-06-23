@@ -9,8 +9,8 @@ public class TimeEntry : Entity
     public DateOnly WorkDate { get; set; } = default!;
     public string? Description { get; set; }
 
-    private readonly List<ActivityPeriod> _startActivityPeriods = new();
+    private readonly List<ActivityPeriod> _startActivityPeriods = [];
     public IReadOnlyCollection<ActivityPeriod> StartActivityPeriods => _startActivityPeriods.AsReadOnly();
-    private readonly List<ActivityPeriod> _endActivityPeriods = new();
+    private readonly List<ActivityPeriod> _endActivityPeriods = [];
     public IReadOnlyCollection<ActivityPeriod> EndActivityPeriods => _endActivityPeriods.AsReadOnly();
 }

@@ -17,8 +17,7 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
 
         var nonDeletedPeriods = targetActivity.ActivityPeriods.Where(p => !p.IsDeleted).ToList();
 
-        var overallMinDate = nonDeletedPeriods.Min(p => p.StartDate);
-        // Define an effective end date for the query range
+        var overallMinDate = targetActivity.FirstOverallStartDate!.Value;
         var effectiveQueryEndDate = targetActivity.IsCurrentlyActive
             ? DateTime.Now
             : nonDeletedPeriods.Where(p => p.EndDate.HasValue).Select(p => p.EndDate.Value).DefaultIfEmpty(overallMinDate).Max();
@@ -26,6 +25,18 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
 
 
         var allTimeEntries = (await timeEntryRepository.GetEntriesByDateRangeOrderedAsync(overallMinDate, effectiveQueryEndDate)).ToList();
+        var firstGeneralStartActivity = targetActivity.FirstGeneralStartActivity;
+        var lastGeneralEndActivity = targetActivity.LastGeneralEndActivity ?? firstGeneralStartActivity;
+        var startTimeEntry = await timeEntryRepository.GetByIdAsync(firstGeneralStartActivity!.AssociatedStartTimeEntryId);
+        var endTimeEntry = lastGeneralEndActivity?.AssociatedEndTimeEntryId != null
+            ? await timeEntryRepository.GetByIdAsync(lastGeneralEndActivity.AssociatedEndTimeEntryId.Value)
+            : null;
+
+        allTimeEntries.Add(startTimeEntry!);
+        if (endTimeEntry != null && !allTimeEntries.Any(te => te.Id == endTimeEntry.Id))
+        {
+            allTimeEntries.Add(endTimeEntry);
+        }
         var timeEntriesByWorkDate = allTimeEntries
             .GroupBy(te => DateOnly.FromDateTime(te.EntryDate.Date))
             .ToDictionary(g => g.Key, g => g.OrderBy(te => te.EntryDate).ToList());
@@ -47,10 +58,10 @@ public class ActivityWorkCalculatorService(IActivityRepository activityRepositor
 
                 List<(DateTime Start, DateTime End)> workSegments = GetWorkSegmentsForDay(dailyTimeEntries);
 
-                foreach (var segment in workSegments)
+                foreach (var (Start, End) in workSegments)
                 {
-                    var effectiveStart = Max(periodActualStart, segment.Start);
-                    var effectiveEnd = Min(periodActualEnd, segment.End);
+                    var effectiveStart = Max(periodActualStart, Start);
+                    var effectiveEnd = Min(periodActualEnd, End);
 
                     if (effectiveStart < effectiveEnd)
                     {

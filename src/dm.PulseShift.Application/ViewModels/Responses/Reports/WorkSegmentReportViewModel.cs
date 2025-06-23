@@ -2,6 +2,10 @@
 
 public record WorkSegmentReportViewModel(
     string StartTime,
-    string EndTime,
+    string? EndTime,
+    decimal HoursWorked,
+    decimal HoursCoveredByActivities,
+    decimal Efficiency,
+    string EntryType,
     IEnumerable<ActivityEventViewModel> Activities
 );

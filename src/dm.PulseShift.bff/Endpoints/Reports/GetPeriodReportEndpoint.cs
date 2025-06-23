@@ -20,10 +20,10 @@ public class GetPeriodReportEndpoint : IEndpoint
 
     private static async Task<IResult> HandleAsync(
         IReportAppService reportAppService,
-        [FromQuery] DateTime startDate,
-        [FromQuery] DateTime endDate)
+        [FromQuery] DateOnly startDate,
+        [FromQuery] DateOnly endDate)
     {
-        var request = new PeriodReportRequestViewModel(startDate, endDate.ToLocalTime());
+        var request = new PeriodReportRequestViewModel(startDate, endDate);
         var response = await reportAppService.GetPeriodReportAsync(request);
         return ResponseResult<PeriodReportResponseViewModel>.CreateResponse(response);
     }

@@ -11,5 +11,6 @@ public static class ServiceCollectionExtensions
         .AddScoped<IDayOffRepository, DayOffRepository>()
         .AddScoped<IActivityRepository, ActivityRepository>()
         .AddScoped<IActivityPeriodRepository, ActivityPeriodRepository>()
+        .AddScoped<IInsightsRepository, InsightsRepository>()
         ;
 }

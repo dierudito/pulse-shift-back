@@ -14,5 +14,7 @@ public static class BuildExtension
             builder.Configuration.GetValue<string>("Config:Cors:FrontendUrl") ?? string.Empty;
         ApiConfigurations.CorsPolicyName =
             builder.Configuration.GetValue<string>("Config:Cors:Name") ?? string.Empty;
+        ApiConfigurations.InsightsDbConnectionString = 
+            builder.Configuration.GetConnectionString("InsightsDbSqlite") ?? string.Empty;
     }
 }

@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>b051ee40-7df5-40db-9b6b-4df3bd0d8b47</UserSecretsId>
+		<ApplicationIcon>favicon.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -22,6 +23,12 @@
 		<ProjectReference Include="..\dm.PulseShift.Application\dm.PulseShift.Application.csproj" />
 		<ProjectReference Include="..\dm.PulseShift.Infra.CrossCutting.IoC\dm.PulseShift.Infra.CrossCutting.IoC.csproj" />
 		<ProjectReference Include="..\dm.PulseShift.Infra.CrossCutting.Shared\dm.PulseShift.Infra.CrossCutting.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="favicon.ico">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

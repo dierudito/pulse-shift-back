@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IActivityAppService, ActivityAppService>();
         services.AddScoped<IWorkSummaryAppService, WorkSummaryAppService>();
         services.AddScoped<IReportAppService, ReportAppService>();
+        services.AddScoped<IChartReportAppService , ChartReportAppService>();
         //services.AddScoped<IAuthenticationWebSiteSeniorXAppService, AuthenticationWebSiteSeniorXAppService>();
         return services;
     }

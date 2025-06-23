@@ -3,6 +3,6 @@
 namespace dm.PulseShift.Application.ViewModels.Requests;
 
 public record PeriodReportRequestViewModel(
-    [Required] DateTime StartDate,
-    [Required] DateTime EndDate
+    [Required] DateOnly StartDate,
+    [Required] DateOnly EndDate
 );

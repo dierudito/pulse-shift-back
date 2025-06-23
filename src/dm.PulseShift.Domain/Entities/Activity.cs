@@ -7,6 +7,10 @@ public class Activity : Entity
     public string? Description { get; set; }
     public string CardCode { get; set; } = default!;
     public string? CardLink { get; set; }
+    public ActivityPeriod? FirstGeneralStartActivity => 
+        _activityPeriods.Where(p => !p.IsDeleted).OrderBy(p => p.StartDate).FirstOrDefault();
+    public ActivityPeriod? LastGeneralEndActivity => 
+        _activityPeriods.Where(p => !p.IsDeleted && p.EndDate.HasValue).OrderByDescending(p => p.EndDate).FirstOrDefault();
     public DateTime? FirstOverallStartDate =>
     _activityPeriods.Where(p => !p.IsDeleted).Any()
         ? _activityPeriods.Where(p => !p.IsDeleted).Min(p => p.StartDate)

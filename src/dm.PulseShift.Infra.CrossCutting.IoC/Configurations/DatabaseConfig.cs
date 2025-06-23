@@ -22,5 +22,6 @@ public static class DatabaseConfig
 #if (DEBUG)
             options.EnableSensitiveDataLogging();
 #endif
-        });
+        })
+        .AddDbContext<InsightsDbContext>(options => options.UseSqlite(ApiConfigurations.InsightsDbConnectionString));
 }
