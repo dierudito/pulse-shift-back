@@ -21,4 +21,14 @@ public class ChartReportAppService(IInsightsRepository insightsRepository, IMapp
             Data = responseData
         };
     }
+    public async Task<Response<IEnumerable<ProductivityByDayViewModel>>> GetProductivityByDayOfWeekChartDataAsync()
+    {
+        var dailyProductivitySummaries = await insightsRepository.GetProductivityByDayOfWeekAsync();
+        var responseData = mapper.Map<IEnumerable<ProductivityByDayViewModel>>(dailyProductivitySummaries);
+        return new Response<IEnumerable<ProductivityByDayViewModel>>
+        {
+            Code = HttpStatusCode.OK,
+            Data = responseData
+        };
+    }
 }

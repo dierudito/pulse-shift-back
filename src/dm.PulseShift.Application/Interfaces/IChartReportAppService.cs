@@ -6,4 +6,5 @@ namespace dm.PulseShift.Application.Interfaces;
 public interface IChartReportAppService
 {
     Task<Response<IEnumerable<TopActivityChartDataViewModel>>> GetTopTimeConsumingActivitiesChartDataAsync();
+    Task<Response<IEnumerable<ProductivityByDayViewModel>>> GetProductivityByDayOfWeekChartDataAsync();
 }

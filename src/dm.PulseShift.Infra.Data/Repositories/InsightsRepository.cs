@@ -15,4 +15,11 @@ public class InsightsRepository(InsightsDbContext dbContext) : IInsightsReposito
             .Take(count)
             .ToListAsync();
     }
+    public async Task<IEnumerable<DailyProductivitySummary>> GetProductivityByDayOfWeekAsync()
+    {
+        return await dbContext.DailyProductivitySummaries
+            .AsNoTracking()
+            .OrderBy(summary => summary.DayOfWeek)
+            .ToListAsync();
+    }
 }

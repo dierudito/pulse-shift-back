@@ -55,7 +55,8 @@ public static class Endpoint
 
         endpoints.MapGroup(ApiConfigurations.RouterCharts)
             .WithTags("Charts")
-            .MapEndpoint<GetTopActivitiesChartEndpoint>();
+            .MapEndpoint<GetTopActivitiesChartEndpoint>()
+            .MapEndpoint<GetProductivityByDayEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

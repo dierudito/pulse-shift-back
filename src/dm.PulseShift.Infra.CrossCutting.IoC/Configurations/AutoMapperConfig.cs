@@ -17,6 +17,7 @@ public static class AutoMapperConfig
             mc.AddProfile(new ActivityMap());
             mc.AddProfile(new ActivityPeriodMap());
             mc.AddProfile(new ActivitySummaryMap());
+            mc.AddProfile(new DailyProductivitySummaryMap());
         });
 
         var mapper = mapConfig.CreateMapper();

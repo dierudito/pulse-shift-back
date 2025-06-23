@@ -2,9 +2,9 @@
 
 namespace dm.PulseShift.Domain.Entities.Insights;
 
-[Table("activity_summary")]
-public class ActivitySummary
+[Table("daily_productivity_summary")]
+public class DailyProductivitySummary
 {
-    public string ActivityLabel { get; set; } = default!;
+    public string DayOfWeek { get; set; } = default!;
     public double Duration_Hours { get; set; }
 }
