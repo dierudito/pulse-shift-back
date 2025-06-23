@@ -1,6 +1,7 @@
 ﻿namespace dm.PulseShift.Application.ViewModels.Responses.Charts;
 
-public record ProductivityByDayViewModel(
-    string DayOfWeek,
-    double DurationHours
-);
+public class ProductivityByDayViewModel
+{
+    public string DayOfWeek { get; set; } = string.Empty;
+    public double DurationHours { get; set; } = 0.0;
+}

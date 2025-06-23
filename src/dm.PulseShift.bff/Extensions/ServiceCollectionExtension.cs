@@ -1,6 +1,7 @@
 ﻿using dm.PulseShift.Application;
 using dm.PulseShift.Infra.CrossCutting.IoC.Configurations;
 using dm.PulseShift.Infra.CrossCutting.Shared;
+using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 
 namespace dm.PulseShift.bff.Extensions;
@@ -19,9 +20,25 @@ public static class ServiceCollectionExtension
     public static IServiceCollection AddDocumentation(this IServiceCollection services) =>
         services
         .AddEndpointsApiExplorer()
-        .AddSwaggerGen(x =>
+        .AddSwaggerGen(options =>
         {
-            x.CustomSchemaIds(n => n.FullName);
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Version = "v1",
+                Title = "Workforce Journey Management API",
+                Description = "API for managing employee work journeys, including time tracking and activity monitoring.",
+                TermsOfService = new Uri("https://example.com/terms"),
+                Contact = new OpenApiContact
+                {
+                    Name = "Support Team",
+                    Email = "support@example.com"
+                },
+                License = new OpenApiLicense
+                {
+                    Name = "Example License",
+                    Url = new Uri("https://example.com/license")
+                }
+            });
         });
 
     public static IServiceCollection AddCrossOrigin(this IServiceCollection services) =>

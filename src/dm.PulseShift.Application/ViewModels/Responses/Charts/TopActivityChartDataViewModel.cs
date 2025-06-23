@@ -1,6 +1,7 @@
 ﻿namespace dm.PulseShift.Application.ViewModels.Responses.Charts;
 
-public record TopActivityChartDataViewModel(
-    string ActivityLabel,
-    double DurationHours
-);
+public class TopActivityChartDataViewModel
+{
+    public string ActivityLabel { get; set; } = string.Empty;
+    public double DurationHours { get; set; } = 0.0;
+}

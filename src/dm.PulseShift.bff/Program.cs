@@ -13,7 +13,11 @@ if (app.Environment.IsDevelopment())
 {
     app.ConfigureDevEnvironment();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Workforce Journey API v1");
+        options.RoutePrefix = string.Empty; // Set Swagger UI at apps root
+    });
 }
 app.UseRouting();
 app.UseCors(ApiConfigurations.CorsPolicyName);
