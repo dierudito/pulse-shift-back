@@ -10,7 +10,9 @@ public class PulseShiftDbContext(DbContextOptions<PulseShiftDbContext> options)
     public DbSet<WorkSchedule> WorkSchedules { get; set; } = default!;
     public DbSet<DayOff> DaysOff { get; set; } = default!;
     public DbSet<Activity> Activities { get; set; } = default!;
-    public DbSet<ActivityPeriod> ActivityPeriods { get; set; } = default!;
+    public DbSet<ActivityPeriod> ActivityPeriods { get; set; } = default!; 
+    public DbSet<SprintReport> SprintReports { get; set; } = default!;
+    public DbSet<WorkItem> WorkItems { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

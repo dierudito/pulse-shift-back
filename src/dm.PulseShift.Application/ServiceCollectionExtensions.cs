@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWorkSummaryAppService, WorkSummaryAppService>();
         services.AddScoped<IReportAppService, ReportAppService>();
         services.AddScoped<IChartReportAppService , ChartReportAppService>();
+        services.AddScoped< ISprintReportAppService , SprintReportAppService>();
         //services.AddScoped<IAuthenticationWebSiteSeniorXAppService, AuthenticationWebSiteSeniorXAppService>();
         return services;
     }

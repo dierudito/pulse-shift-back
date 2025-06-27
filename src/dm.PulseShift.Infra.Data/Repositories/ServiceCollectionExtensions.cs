@@ -12,5 +12,6 @@ public static class ServiceCollectionExtensions
         .AddScoped<IActivityRepository, ActivityRepository>()
         .AddScoped<IActivityPeriodRepository, ActivityPeriodRepository>()
         .AddScoped<IInsightsRepository, InsightsRepository>()
+        .AddScoped<ISprintReportRepository, SprintReportRepository>()
         ;
 }

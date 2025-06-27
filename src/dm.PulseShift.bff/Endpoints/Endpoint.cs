@@ -2,6 +2,7 @@
 using dm.PulseShift.bff.Endpoints.Charts;
 using dm.PulseShift.bff.Endpoints.DaysOff;
 using dm.PulseShift.bff.Endpoints.Reports;
+using dm.PulseShift.bff.Endpoints.SprintReports;
 using dm.PulseShift.bff.Endpoints.TimeEntries;
 using dm.PulseShift.bff.Endpoints.WorkSummary;
 using dm.PulseShift.bff.Extensions;
@@ -57,6 +58,10 @@ public static class Endpoint
             .WithTags("Charts")
             .MapEndpoint<GetTopActivitiesChartEndpoint>()
             .MapEndpoint<GetProductivityByDayEndpoint>();
+
+        endpoints.MapGroup(ApiConfigurations.RouterSprintReports)
+            .WithTags("Sprint Reports")
+            .MapEndpoint<ImportSprintReportEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

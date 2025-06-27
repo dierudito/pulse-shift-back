@@ -18,4 +18,5 @@ public class ApiConfigurations
     public const string RouterWorkSummary = "/work-summary";
     public const string RouterReports = "/reports";
     public const string RouterCharts = "/charts";
+    public const string RouterSprintReports = "/sprint-reports";
 }
