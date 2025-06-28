@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dm.PulseShift.Infra.Data.Context;
 
@@ -11,9 +12,11 @@ using dm.PulseShift.Infra.Data.Context;
 namespace dm.PulseShift.Infra.Data.Migrations
 {
     [DbContext(typeof(PulseShiftDbContext))]
-    partial class PulseShiftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250628123101_AddSprintReportAndWorkItemTables")]
+    partial class AddSprintReportAndWorkItemTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
