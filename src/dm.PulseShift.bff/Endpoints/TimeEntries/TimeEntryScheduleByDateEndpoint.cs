@@ -11,7 +11,7 @@ public class TimeEntryScheduleByDateEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app) =>
         app.MapGet("/schedule/date", HandleAsync)
             .WithName("TimeEntryScheduleByDate")
-            .WithTags("Time Entry Schedule")
+            .WithTags("Time Entry")
             .Produces<Response<GetWorkScheduleResponseViewModel>>() // Crie um ViewModel adequado para a resposta
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError)

@@ -17,7 +17,7 @@ public record WorkItemRequestViewModel
     public string Status { get; init; } = string.Empty;
 
     [JsonPropertyName("subAtividades")]
-    public List<WorkItemRequestViewModel> SubActivities { get; init; } = new();
+    public List<WorkItemRequestViewModel> SubActivities { get; init; } = [];
 
     [JsonPropertyName("tipo")]
     public string Type { get; init; } = string.Empty;

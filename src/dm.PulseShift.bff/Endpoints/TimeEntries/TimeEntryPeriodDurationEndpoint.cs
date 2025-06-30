@@ -10,7 +10,7 @@ public class TimeEntryPeriodDurationEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app) =>
         app.MapGet("/duration/period", HandleAsync)
             .WithName("TimeEntryPeriodDuration")
-            .WithTags("Time Entry Period Duration")
+            .WithTags("Time Entry")
             .Produces<Response<GetPeriodDurationResponseViewModel>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError)

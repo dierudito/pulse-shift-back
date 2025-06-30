@@ -11,7 +11,7 @@ public class TimeEntryDurationEndpoint : IEndpoint
     public static void Map(IEndpointRouteBuilder app) =>
         app.MapGet("/duration/date", HandleAsync)
             .WithName("TimeEntryDuration")
-            .WithTags("Time Entry Duration")
+            .WithTags("Time Entry")
             .Produces<Response<GetDurationResponseViewModel>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError)

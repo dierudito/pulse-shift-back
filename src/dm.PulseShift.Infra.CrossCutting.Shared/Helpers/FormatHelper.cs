@@ -21,4 +21,16 @@ public static class FormatHelper
         }
         return FormatDateTimeToBrazilianString(date.Value, format);
     }
+    public static DateTime? ConvertPortugueseMonthDayToDateTime(this string dateStringInPortuguese)
+    {
+        const string format = "d 'de' MMMM";
+        var cultureInfo = new CultureInfo("pt-BR");
+
+        if (DateTime.TryParseExact(dateStringInPortuguese, format, cultureInfo, DateTimeStyles.None, out DateTime result))
+        {
+            return result;
+        }
+
+        return null;
+    }
 }

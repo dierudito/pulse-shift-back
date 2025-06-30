@@ -4,6 +4,7 @@ using dm.PulseShift.Application.ViewModels.Responses.Base;
 using dm.PulseShift.Domain.Entities;
 using dm.PulseShift.Domain.Enums;
 using dm.PulseShift.Domain.Interfaces.Repositories;
+using dm.PulseShift.Infra.CrossCutting.Shared.Helpers;
 using System.Net;
 
 namespace dm.PulseShift.Application.AppServices;
@@ -12,8 +13,8 @@ public class SprintReportAppService(ISprintReportRepository sprintReportReposito
 {
     public async Task<Response<Guid>> ImportSprintReportAsync(SprintReportRequestViewModel request)
     {
-        var startDate = DateTime.ParseExact(request.StartDate, "dd/MM/yyyy", null);
-        var endDate = DateTime.ParseExact(request.EndDate, "dd/MM/yyyy", null);
+        var startDate = request.StartDate.ConvertPortugueseMonthDayToDateTime();
+        var endDate = request.EndDate.ConvertPortugueseMonthDayToDateTime();
 
         var sprintReport = new SprintReport
         {
@@ -36,7 +37,7 @@ public class SprintReportAppService(ISprintReportRepository sprintReportReposito
         };
     }
 
-    private List<WorkItem> MapWorkItems(IEnumerable<WorkItemRequestViewModel> requestItems, SprintReport report, WorkItem? parent = null)
+    private static List<WorkItem> MapWorkItems(IEnumerable<WorkItemRequestViewModel> requestItems, SprintReport report, WorkItem? parent = null)
     {
         var workItems = new List<WorkItem>();
         foreach (var requestItem in requestItems)
@@ -52,7 +53,7 @@ public class SprintReportAppService(ISprintReportRepository sprintReportReposito
                 ParentWorkItem = parent
             };
 
-            if (requestItem.SubActivities.Any())
+            if (requestItem.SubActivities.Count != 0)
             {
                 workItem.SubWorkItems = MapWorkItems(requestItem.SubActivities, report, workItem);
             }
@@ -61,13 +62,12 @@ public class SprintReportAppService(ISprintReportRepository sprintReportReposito
         return workItems;
     }
 
-    private T ParseEnum<T>(string value) where T : struct
+    private static T ParseEnum<T>(string value) where T : struct
     {
         if (Enum.TryParse<T>(value, true, out var result))
         {
             return result;
         }
-        // Retornar um valor padrão ou lançar exceção se o valor for inválido
         return default;
     }
 }
