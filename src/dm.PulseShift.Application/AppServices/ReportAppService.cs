@@ -15,7 +15,6 @@ public class ReportAppService(
     IActivityRepository activityRepository,
     ITimeEntryRepository timeEntryRepository) : IReportAppService
 {
-    private static readonly CultureInfo PtBrCulture = CultureInfo.GetCultureInfo("pt-BR");
     private const string TimeFormat = "HH:mm";
 
     public async Task<Response<PeriodReportResponseViewModel>> GetPeriodReportAsync(PeriodReportRequestViewModel request)
@@ -241,68 +240,6 @@ public class ReportAppService(
         var merged = new LinkedList<(DateTime Start, DateTime End)>();
         foreach (var current in sortedIntervals) { if (merged.Last == null || current.Start >= merged.Last.Value.End) { merged.AddLast(current); } else { var lastMergedNode = merged.Last; if (current.End > lastMergedNode.Value.End) { lastMergedNode.Value = (lastMergedNode.Value.Start, current.End); } } }
         return merged.ToList();
-    }
-
-    private static bool IsSegmentEffectivelyOpen(ValueTuple<DateTime, DateTime> segment, List<TimeEntry> dailyTimeEntriesForThisDay)
-    {
-        // Verifica se o EndTime do segmento corresponde a um ClockOut real
-        var clockOut = dailyTimeEntriesForThisDay
-            .Where(te => !te.IsDeleted && te.EntryType == TimeEntryType.ClockOut)
-            .OrderByDescending(te => te.EntryDate)
-            .FirstOrDefault();
-
-        if (segment.Item1.Date == segment.Item2.Date && // mesmo dia
-            clockOut != null && segment.Item2 == clockOut.EntryDate)
-        {
-            return false; // Segmento fechado por um ClockOut
-        }
-        if (segment.Item2.TimeOfDay == TimeSpan.FromDays(1).Add(TimeSpan.FromTicks(-1))) // Termina no fim do dia
-        {
-            return clockOut == null || clockOut.EntryDate < segment.Item2; // Aberto se não houver clockout ou se o clockout for antes do fim do dia
-        }
-        // Poderia ter lógica mais complexa aqui, mas se o segmento termina e não é o ClockOut, algo está faltando.
-        // Se o último evento do dia para este segmento não é um clockout que o fecha.
-        var lastEventForSegment = dailyTimeEntriesForThisDay
-                                .Where(te => te.EntryDate <= segment.Item2)
-                                .OrderByDescending(te => te.EntryDate)
-                                .FirstOrDefault();
-        return lastEventForSegment != null && lastEventForSegment.EntryType != TimeEntryType.ClockOut;
-
-    }
-
-
-    private string FormatActivityWorkingPeriod(ActivityPeriod activityPeriod, DateTime workSegmentStart, DateTime workSegmentEnd, DateTime activityOverlapStart, DateTime activityOverlapEnd)
-    {
-        // O 'activityOverlapStart' e 'activityOverlapEnd' já são a interseção em SP
-        var startedInOrAtSegmentBoundary =
-            activityPeriod.StartDate >= workSegmentStart &&
-            activityPeriod.StartDate < workSegmentEnd;
-        var endedInOrAtSegmentBoundary =
-            activityPeriod.EndDate.HasValue &&
-            activityPeriod.EndDate.Value > workSegmentStart &&
-            activityPeriod.EndDate.Value <= workSegmentEnd;
-
-        if (startedInOrAtSegmentBoundary && endedInOrAtSegmentBoundary)
-        {
-            // Se iniciou e terminou dentro do overlap SP (que é o overlap com o workSegment)
-            return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
-        }
-        if (startedInOrAtSegmentBoundary) // Começou dentro do segmento de trabalho (ou no seu início) e termina depois (ou está ativa)
-        {
-            return activityOverlapStart.ToString(TimeFormat, PtBrCulture);
-        }
-        if (endedInOrAtSegmentBoundary) // Terminou dentro do segmento de trabalho (ou no seu fim) e começou antes
-        {
-            return activityOverlapEnd.ToString(TimeFormat, PtBrCulture);
-        }
-        // Se cruzou todo o overlap (começou antes do overlap E terminou depois do overlap OU está ativa)
-        if (activityPeriod.StartDate < activityOverlapStart &&
-            (!activityPeriod.EndDate.HasValue || activityPeriod.EndDate.Value > activityOverlapEnd))
-        {
-            return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
-        }
-        // Caso de fallback ou se a lógica acima não cobrir perfeitamente, pode retornar o intervalo de overlap
-        return $"{activityOverlapStart.ToString(TimeFormat, PtBrCulture)} - {activityOverlapEnd.ToString(TimeFormat, PtBrCulture)}";
     }
 
     private static DateTime Max(DateTime d1, DateTime d2) => d1 > d2 ? d1 : d2;

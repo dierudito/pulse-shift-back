@@ -248,7 +248,7 @@ public class ActivityAppService(
                 activity.Description,
                 activity.CardCode,
                 activity.CardLink,
-                FormatHelper.FormatNumberToBrazilianString(totalWorkedHours),
+                FormatHelper.FormatNumberToBrazilianString((double)totalWorkedHours),
                 FormatHelper.FormatDateTimeToBrazilianString(activity.FirstOverallStartDate),
                 FormatHelper.FormatDateTimeToBrazilianString(activity.LastOverallEndDate),
                 FormatHelper.FormatDateTimeToBrazilianString(activity.CreatedAt),
@@ -389,7 +389,7 @@ public class ActivityAppService(
             foreach (var activity in activitiesData)
             {
                 TimeSpan totalWorkedTimeSpan = await workCalculatorService.CalculateEffectiveWorkTimeAsync(activity);
-                decimal totalWorkedHoursDecimal = (decimal)totalWorkedTimeSpan.TotalHours;
+                var totalWorkedHoursDecimal = totalWorkedTimeSpan.TotalHours;
                 var formattedTotalWorkedHours = FormatHelper.FormatNumberToBrazilianString(totalWorkedHoursDecimal);
 
                 string? formattedLastEndDate = activity.LastOverallEndDate.HasValue

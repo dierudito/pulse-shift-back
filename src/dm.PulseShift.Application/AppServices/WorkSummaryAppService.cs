@@ -20,8 +20,9 @@ public class WorkSummaryAppService(IActivityWorkCalculatorService activityWorkCa
             var calculationResult = await activityWorkCalculatorService.CalculateTotalEffectiveActivityTimeInRangeAsync(request.StartDate, request.EndDate);
 
             var responseData = new TotalWorkHoursResponseViewModel(
-                FormatHelper.FormatNumberToBrazilianString((decimal)calculationResult.TotalWorkHoursFromEntries.TotalHours),
-                FormatHelper.FormatNumberToBrazilianString((decimal)calculationResult.TotalWorkCoveredByActivities.TotalHours),
+                FormatHelper.FormatNumberToBrazilianString(calculationResult.TotalWorkHoursFromEntries.TotalHours),
+                FormatHelper.FormatNumberToBrazilianString(calculationResult.TotalWorkCoveredByActivities.TotalHours),
+                FormatHelper.FormatNumberToBrazilianString(calculationResult.UnaccountedWorkDuration.TotalHours),
                 FormatHelper.FormatDateTimeToBrazilianString(request.StartDate),
                 FormatHelper.FormatDateTimeToBrazilianString(request.EndDate)
             );

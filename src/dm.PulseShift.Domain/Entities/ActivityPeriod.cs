@@ -29,4 +29,11 @@ public class ActivityPeriod : Entity
         AssociatedEndTimeEntryId = endAssociatedTimeEntryId;
         UpdatedAt = DateTime.Now;
     }
+
+    public double CalcTotalDurationInMinutes()
+    {
+        var endDate = EndDate ?? DateTime.Now;
+        var duration = endDate - StartDate;
+        return duration.TotalMinutes;
+    }
 }
